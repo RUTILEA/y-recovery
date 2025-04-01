@@ -1,43 +1,34 @@
-# GSユアサバッテリ検査 PoC2 
+# GSユアサバッテリ検査 PoC2 推論のみ
 
-## セットアップ
-### Dockerイメージのビルド
+## 初期設定
+### Weightsのダウンロード
 ```
-docker build -t <コンテナ名> .
+gdown "https://drive.google.com/u/0/uc?id=1VvlEyD7lyavBTvGO82_zNStANNuF5orX&confirm=t"
 ```
-### Dockerコンテナを起動<br>
-コマンド例）
-
+### Dockerコンテナを起動
 ```
-docker run --rm -it --gpus all -v "D:\development_data:/workspace/data" -v "%CD%:/workspace" detectron2-container /bin/bash
+docker compose up --build -d
 ```
 
 ## 推論
 ### セルの検査
 
 #### フォルダ構造
-`input_dir`に検査したいフォルダを配置
+`input_dir`（dataフォルダ）に検査するファイルを配置  
+なお、フォルダ構成は以下のとおりとします。
 ```
 .
 └── data
+    ├── OK_data
+    │   ├── 1GP200101A0101_正極_20200101_111111
+    │   ...
+    │   └── 1GP200202A0202_負極_20200202_222222
     └── NG_data
-        ├── 1GP170529A0214_正極_20170708_180638
+        ├── 1GP200303A0303_正極_20200303_333333
         ...
-        └── 1GP170703A0027_負極_20170801_235645
+        └── 1GP200404A0404_負極_20200404_444444
 ```
 `inference_main.py`ファイルのパスを編集して、下記を実行
 ```
 python3 inference_main.py
-```
-
-## 学習
-### データセット作成
-`labelme_to_coco.py`: labelmeで作成したアノテーションデータをcoco形式に変換<br>
-`augument.py`: 良品画像に不良を複数貼り付けて、データの水増しを行う<br>
-`crop_bead.py`, `crop_ob1.py`, `crop_ob2.py`: 入力サイズに切り出し<br>
-
-### 実行
-`train.py`ファイルのパスを編集して、下記を実行
-```
-python train.py
 ```
