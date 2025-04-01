@@ -17,6 +17,7 @@ class InferenceMain:
         self.weight_dir = weight_dir
         self.output_dir = output_dir
         self._set_predictor(weights_list)
+        
     
     def _set_predictor(self, weights_list):
         input_dir = os.path.join(self.input_dir, "[Z軸]")
@@ -80,63 +81,60 @@ class InferenceMain:
             return False
         return True
     
+    
+    
     def inspect(self, filename, fileID):
         slice_number = int(filename[-8:-4])
         img = self.z_inspector.read_image(filename)
         z_index = self.extract_index(filename)
-        boxes_z = self.z_inspector.inspect(img, slice_number)
+        boxes_z = self.z_inspector.inspect(img, slice_number, save=True, saveID=f"{fileID}_{slice_number}")
         boxes_z = self.merge_boxes(boxes_z)
         print(f"z_index: {z_index}, boxes: {boxes_z}")
         
         ob2_boxes = self.convert_Z_to_oblique2(boxes_z, z_index)
         for p in ob2_boxes:
             idx = p[0]; x = p[1]; y = p[2]
-            for i in range(-1, 5):
-                filename = 'オブリーク2_' + fileID + f"_{idx+i:04}.tif"
-                if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
-                    # print(os.path.join(self.ob2_inspector.input_dir, filename))
-                    continue
-                else:
-                    pass
-                img_ob2 = self.ob2_inspector.read_image(filename)
-                boxes_ob2 = self.ob2_inspector.inspect(img_ob2)
-                for boxes in boxes_ob2:
-                    boxes = self.merge_boxes(boxes)
-                    for box in boxes:
-                        center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-                        if abs(center_x - x) < 20 and abs(center_y - y) < 20:
-                            print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")
-                            print('detect_area:', center_x, center_y)
-                            del img; del img_ob2 
-                            import gc
-                            gc.collect() 
-                            return True
+            filename = 'オブリーク2_' + fileID + f"_{idx:04}.tif"
+            if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
+                # print(os.path.join(self.ob2_inspector.input_dir, filename))
+                continue
+            else:
+                pass
+            img_ob2 = self.ob2_inspector.read_image(filename)
+            boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=True, saveID=f"{fileID}_{idx}")
+            for boxes in boxes_ob2:
+                boxes = self.merge_boxes(boxes)
+                for box in boxes:
+                    center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
+                    if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                        print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")
+                        print('detect_area:', center_x, center_y)
+                        # del img; del img_ob2 
+                        # import gc
+                        # gc.collect() 
+                        return True
                         
-        # ob1_boxes = self.convert_Z_to_oblique1(boxes_z)
-            # for p in ob1_boxes:
-            #     idx = p[0]; x = p[1]; y = p[2]
-            #     for i in range(-1, 5):
-            #         filename = '1GP' + fileID + f"_{idx+i:04}.tif"
-            #         if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
-            #             # print(f"not found: {filename}")
-            #             continue
-            #         else:
-            #             # print(f"found: {filename}")
-            #             pass
-            #         img_ob1 = self.ob1_inspector.read_image(filename)
-            #         boxes_ob1 = self.ob1_inspector.inspect(img_ob1)
-            #         for boxes in boxes_ob1:
-            #             boxes = self.merge_boxes(boxes)
-            #             for box in boxes:
-            #                 center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-            #                 if abs(center_x - x) < 20 and abs(center_y - y) < 20:
-            #                     # print(f"detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
-            #                     detect = True
-            #                     break
-            #             if detect:
-            #                 break
-            #         if detect:
-            #             break
+        ob1_boxes = self.convert_Z_to_oblique1(boxes_z, z_index)
+        for p in ob1_boxes:
+            idx = p[0]; x = p[1]; y = p[2]
+            # for i in range(-1, 5):
+            filename = 'オブリーク1_' + fileID + f"_{idx:04}.tif"
+            print(filename)
+            if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
+                # print(f"not found: {filename}")
+                continue
+            else:
+                # print(f"found: {filename}")
+                pass
+            img_ob1 = self.ob1_inspector.read_image(filename)
+            boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}")
+            for boxes in boxes_ob1:
+                boxes = self.merge_boxes(boxes)
+                for box in boxes:
+                    center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
+                    if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                        # print(f"detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
+                            return True
         return False
         
         
@@ -193,21 +191,21 @@ class InferenceMain:
 if __name__ == '__main__':
     import time
     start = time.time()
-    input_dir = "/workspace/data/低解像度/TIFF low resolution_OK"   
+    input_dir = "/workspace/data/sample_test_data"   
     weights_dir = "/workspace/weights/"
     weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)],\
-                    'oblique1': [("model_main.pth", 0.2)],\
-                    'oblique2': [("model_main.pth", 0.1)]}
+                    'oblique1': [("model_main.pth", 0.8)],\
+                    'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.3), ("model_small.pth", 0.9)]}
     
-    output_dir = "/workspace/data/results/main/test_20250221"
+    output_dir = "/workspace/data/results/sample_test_data"
     inference = InferenceMain(input_dir, weights_dir, weights_list, output_dir)
     inference.inspect_cells()
     
     # input_dir = "/workspace/data/substance/single/all"   
     # weights_dir = "/workspace/weights/"
     # weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)],\
-    #                 'oblique1': ["model_main.pth"],\
-    #                 'oblique2': [("model_main.pth", 0.1)]}
+    #                 'oblique1': [("model_main.pth", 0.8)],\
+    #                 'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.2)]}
     # output_dir = "/workspace/data/results/main/single_all"
     # inference = InferenceMain(input_dir, weights_dir, weights_list, output_dir)
     # inference.inspect_single_image()

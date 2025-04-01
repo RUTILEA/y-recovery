@@ -27,7 +27,7 @@ docker run --rm -it --gpus all -v "D:\development_data:/workspace/data" -v "%CD%
 ```
 `inference_main.py`ファイルのパスを編集して、下記を実行
 ```
-python inference_main.py
+python3 inference_main.py
 ```
 
 ## 学習

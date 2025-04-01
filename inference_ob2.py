@@ -130,7 +130,7 @@ class InspectorOblique2:
                     outputs = self.predictor[k](crop_img)
                     isinstance = outputs["instances"]
                     boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-                    self.save_image(crop_img, outputs, filename.split('.')[0]+f'_{i}'+'.tif')
+                    self.save_image(crop_img, outputs, filename.split('.')[0]+f'_{3*k+i}'+'.tif')
                     ok = self.is_substance(boxes, point)
                     if ok: detect = True
                 
@@ -145,13 +145,14 @@ class InspectorOblique2:
     def inspect(self, img, save=False, saveID=None):
         detected_areas = []
         crop_images = self.crop_images(img) 
-        for i, crop_img in enumerate(crop_images):
-            outputs = self.predictor[0](crop_img)
-            isinstance = outputs["instances"]
-            boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-            boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
-            detected_areas.append(boxes)
-            if save: self.save_image(crop_img, outputs, saveID+f'_{i}'+'.tif')
+        for k in range(len(self.predictor)):
+            for i, crop_img in enumerate(crop_images):
+                outputs = self.predictor[k](crop_img)
+                isinstance = outputs["instances"]
+                boxes = isinstance.pred_boxes.tensor.cpu().numpy()
+                boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
+                detected_areas.append(boxes)
+                if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.tif')
         return detected_areas
     
     def inspect_one_cell(self):
@@ -172,16 +173,17 @@ if __name__ == "__main__":
     start = time.time()
     input_dir = "/workspace/data/substance/single/oblique2_json"   
     weight_dir = "/workspace/weights/oblique2"
-    weights_list = [("model_main.pth", 0.1), ("model_line.pth", 0.2)]
-    output_dir = "/workspace/data/results/oblique2/difficult_crop2"
+    # weights_list = [("model_main.pth", 0.1), ("model_sub.pth", 0.23)]
+    weights_list = [("model_main.pth", 0.1), ("model_sub.pth", 0.3), ("model_small.pth", 0.9)]
+    output_dir = "/workspace/data/results/oblique2/difficult_crop4"
     os.makedirs(output_dir, exist_ok=True)
     inspector = InspectorOblique2(input_dir, weight_dir, weights_list, output_dir)
     inspector.check_inspect()
     
     # input_dir = "/workspace/data/NG_data/1GP170529A0214_正極_20170708_180638/[オブリーク2]"   
     # weights_dir = "/workspace/weights/oblique2/"
-    # weights_list = [("model_main.pth", 0.1)]
-    # output_dir = "/workspace/data/results/oblique2/170529A0214P_test2"
+    # weights_list = [("model_main.pth", 0.1), ("model_sub.pth", 0.2)]
+    # output_dir = "/workspace/data/results/oblique2/170529A0214P_test"
     # os.makedirs(output_dir, exist_ok=True)
     # inspector = InspectorOblique2(input_dir, weights_dir, weights_list, output_dir)
     # inspector.inspect_one_cell()

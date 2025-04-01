@@ -5,24 +5,16 @@ services:
     image: ubuntu:22.04
     build:
       context: .
-      dockerfile: Dockerfile-dev
+      dockerfile: Dockerfile
     container_name: yuasa-server
     volumes:
       - .:/workspace
-      - H:\GYHD10176:/workspace/data
     environment:
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
-    # deploy:
-      # resources:
-      #   reservations:
-      #     devices:
-      #       - capabilities: [gpu]
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+            - capabilities: [gpu]
     stdin_open: true  # Keep STDIN open even if not attached
     tty: true  # Allocate a pseudo-TTY

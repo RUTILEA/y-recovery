@@ -20,6 +20,7 @@ class InspectorZaxis:
         self._set_predictor(weight_list)
         self.cell_size = {'width': 1000, 'height': 250}
         self.bead_area = {'left': [80, 30, 320, 220], 'right': [680, 30, 920, 220]}  # x1, y1, x2, y2
+        self._set_exclusion_area()
         
     def _setup_cfg(self, gpu_id, weight_path, threshold):
         cfg = get_cfg()
@@ -39,7 +40,31 @@ class InspectorZaxis:
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
+    
+    def _set_exclusion_area(self):
+        self.exclusion_area = [(20, 600, 0, 40, 620, 40), (20, 410, 0, 40, 430, 40), (990, 410, 0, 1010, 430, 40), \
+            (990, 600, 0, 1010, 620, 40), (495, 405, 82, 505, 620, 165), (515, 405, 82, 525, 620, 165), \
+            (355, 405, 90, 370, 620, 165), (645, 405, 90, 665, 620, 165), (295, 405, 90, 315, 620, 165), \
+            (705, 405, 90, 730, 620, 165), (920, 405, 90, 930, 620, 165), (95, 405, 90, 105, 620, 165), \
+            (460, 460, 110, 475, 570, 165), (540, 460, 110, 555, 570, 165)]
+        # (80, 395, 230, 990, 405, 240), (80, 620, 230, 990, 630, 240)] 
         
+    def black_boxes(self, image, boxes):
+        new_boxes = np.empty((0, 4), int)
+        buff = 10
+        height, width = image.shape[:2]
+        for box in boxes:
+            x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            surrounding_area = image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3)
+            surrounding_area = np.concatenate([surrounding_area, image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3)], axis=0)
+            anomaly = image[y1:y2, x1:x2]          
+            flag = np.mean(anomaly) - np.mean(surrounding_area) > -10
+            if flag:
+                new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+        return new_boxes
+    
     def read_image(self, filename):
         image_path = os.path.join(self.input_dir, filename) 
         img = cv2.imread(image_path)
@@ -94,12 +119,29 @@ class InspectorZaxis:
         cv2.imwrite(output_path, out_image[:, :, ::-1])
     
     def is_substance(self, boxes, point):
+        (x1, y1), (x2, y2) = point
         for box in boxes:
-            result_x1, result_y1, result_x2, result_y2 = box
-            (x1, y1), (x2, y2) = point
-            if result_x1 < x2 and result_x2 > x1 and result_y1 < y2 and result_y2 > y1:
+            if self.check_overlap(box, [x1, y1, x2, y2]):
                 return True
         return False
+    
+    def remove_boxes(self, image, boxes, z_index):
+        new_boxes = np.empty((0, 4), int)
+        for box in boxes:
+            for x1, y1, z1, x2, y2, z2 in self.exclusion_area:
+                if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]):
+                    break
+            else:
+                new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+        new_boxes = self.black_boxes(image, new_boxes)
+        return new_boxes
+    
+    def check_overlap(self, box1, box2):
+        if box1[2] <= box2[0] or box2[2] <= box1[0]:
+            return False
+        if box1[3] <= box2[1] or box2[3] <= box1[1]:
+            return False
+        return True
     
     def convert_coordinate(self, boxes, height, width, right):
         new_boxes = np.empty((0, 4), int)
@@ -162,16 +204,18 @@ class InspectorZaxis:
             height, width = img.shape[:2]
             point = self.extract_annotation(label_data, height, width)
             
+            slice_number = int(filename[-8:-4])
             detect = False
             for i in range(2):
                 outputs = self.predictor[i](img)
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
+                boxes =self.remove_boxes(img, boxes, slice_number)
                 self.save_image(img, outputs, filename.split('/')[-1].split('.')[0] + f"_{i}" + ".tif")
                 ok = self.is_substance(boxes, point)
                 if ok: detect = True
                 
-            slice_number = int(filename[-8:-4])
+            
             if slice_number < 185 or slice_number > 253:
                 if detect:
                     print(f"detected: {filename}")
@@ -208,6 +252,7 @@ class InspectorZaxis:
             isinstance = outputs["instances"]
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
+            detected_areas = self.remove_boxes(img, detected_areas, slice_number)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".tif")
         
         if slice_number < 185 or slice_number > 253:
@@ -239,22 +284,22 @@ class InspectorZaxis:
 if __name__ == "__main__":
     import time
     start = time.time()
-    input_dir = "/workspace/data/NG_data/1GP170529A0214_正極_20170708_180638/[Z軸]"   
-    weights_dir = "/workspace/weights/Zaxis/"
-    weights_list = [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)]
-    # weights_list = ["model_main.pth", "model_thin.pth", "model_bead.pth"]
-    output_dir = "/workspace/data/results/Zaxis/170529P_test"
-    os.makedirs(output_dir, exist_ok=True)
-    inspector = InspectorZaxis(input_dir, weights_dir, weights_list, output_dir)
-    inspector.inspect_one_cell()
-    
-    # input_dir = "/workspace/data/substance/single/Z_json"   
+    # input_dir = "/workspace/data/NG_data/1GP170529A0214_正極_20170708_180638/[Z軸]"   
     # weights_dir = "/workspace/weights/Zaxis/"
     # weights_list = [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)]
-    # output_dir = "/workspace/data/results/Zaxis/ng_data_test"
+    # # weights_list = ["model_main.pth", "model_thin.pth", "model_bead.pth"]
+    # output_dir = "/workspace/data/results/Zaxis/170529P_test"
     # os.makedirs(output_dir, exist_ok=True)
     # inspector = InspectorZaxis(input_dir, weights_dir, weights_list, output_dir)
-    # inspector.check_inspect()
+    # inspector.inspect_one_cell()
+    
+    input_dir = "/workspace/data/substance/single/Z_json"   
+    weights_dir = "/workspace/weights/Zaxis/"
+    weights_list = [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)]
+    output_dir = "/workspace/data/results/Zaxis/ng_data_test"
+    os.makedirs(output_dir, exist_ok=True)
+    inspector = InspectorZaxis(input_dir, weights_dir, weights_list, output_dir)
+    inspector.check_inspect()
     
     print(f"elapsed time: {(time.time() - start)/60:.2f}min")
     
