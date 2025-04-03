@@ -12,12 +12,12 @@ from PIL import Image
 import pandas as pd
 
 class InspectorZaxis:
-    def __init__(self, input_dir, weight_dir, weight_list, output_dir):
+    def __init__(self, input_dir, weight_dir, weight_list, output_dir, gpu_id):
         self.input_dir = input_dir
         self.weight_dir = weight_dir
         self.weight_list = weight_list
         self.output_dir = output_dir
-        self._set_predictor(weight_list)
+        self._set_predictor(weight_list, gpu_id)
         self.cell_size = {'width': 1000, 'height': 250}
         self.bead_area = {'left': [80, 30, 320, 220], 'right': [680, 30, 920, 220]}  # x1, y1, x2, y2
         self._set_exclusion_area()
@@ -32,21 +32,40 @@ class InspectorZaxis:
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg
         
-    def _set_predictor(self, weight_list):
+    def _set_predictor(self, weight_list, gpu_id):
         self.predictor = []
         for weight, thresh in weight_list:
             weight_path = os.path.join(self.weight_dir, weight)
-            cfg = self._setup_cfg(0, weight_path, thresh)
+            cfg = self._setup_cfg(gpu_id, weight_path, thresh)
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
     
     def _set_exclusion_area(self):
-        self.exclusion_area = [(20, 600, 0, 40, 620, 40), (20, 410, 0, 40, 430, 40), (990, 410, 0, 1010, 430, 40), \
-            (990, 600, 0, 1010, 620, 40), (495, 405, 82, 505, 620, 165), (515, 405, 82, 525, 620, 165), \
-            (355, 405, 90, 370, 620, 165), (645, 405, 90, 665, 620, 165), (295, 405, 90, 315, 620, 165), \
-            (705, 405, 90, 730, 620, 165), (920, 405, 90, 930, 620, 165), (95, 405, 90, 105, 620, 165), \
-            (460, 460, 110, 475, 570, 165), (540, 460, 110, 555, 570, 165)]
+        self.exclusion_area = [
+            (20, 600, 0, 40, 620, 40),
+            (20, 410, 0, 40, 430, 40),
+            (990, 410, 0, 1010, 430, 40),
+            (990, 600, 0, 1010, 620, 40),
+            (495, 405, 82, 525, 620, 165),
+            (295, 405, 82, 315, 620, 165),
+            (705, 405, 82, 730, 620, 165),
+            (355, 405, 90, 375, 620, 165),
+            (645, 405, 90, 665, 620, 165),
+            (95, 405, 90, 105, 620, 165),
+            (920, 405, 90, 930, 620, 165),
+            (460, 460, 110, 475, 570, 165),
+            (540, 460, 110, 555, 570, 165),
+            (375, 405, 110, 400, 415, 165),
+            (375, 600, 110, 400, 620, 165),
+            (620, 405, 110, 645, 415, 165),
+            (620, 610, 110, 645, 620, 165),
+            (80, 395, 230, 990, 405, 240),
+            (80, 620, 230, 990, 630, 240),
+            (80, 620, 230, 990, 630, 240),
+            (638, 500, 210, 650, 521, 256),
+            (500, 500, 245, 525, 525, 256),
+        ]
         # (80, 395, 230, 990, 405, 240), (80, 620, 230, 990, 630, 240)] 
         
     def black_boxes(self, image, boxes):
@@ -117,6 +136,16 @@ class InspectorZaxis:
         output_path = os.path.join(self.output_dir, filename)
         out_image = out.get_image()
         cv2.imwrite(output_path, out_image[:, :, ::-1])
+
+    def save_image2(self, img, detected_areas, filename):
+        if len(detected_areas) == 0:
+            return
+        img_copy = img.copy()
+        for box in detected_areas:
+            x1, y1, x2, y2 = map(int, box)
+            cv2.rectangle(img_copy, (x1, y1), (x2, y2), (0, 255, 0), 1)  # 緑色の矩形を描画
+        output_path = os.path.join(self.output_dir, filename)
+        cv2.imwrite(output_path, img_copy)
     
     def is_substance(self, boxes, point):
         (x1, y1), (x2, y2) = point
@@ -254,6 +283,7 @@ class InspectorZaxis:
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             detected_areas = self.remove_boxes(img, detected_areas, slice_number)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
+            self.save_image2(img, detected_areas, saveID + f"_{i}" + ".png")
         
         if slice_number < 185 or slice_number > 253:
             return detected_areas
@@ -267,6 +297,7 @@ class InspectorZaxis:
             boxes = self.convert_coordinate(boxes, height, width, i)
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
+            self.save_image2(img, detected_areas, saveID + f"_{i+2}" + ".png")
         
         return detected_areas
     

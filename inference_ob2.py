@@ -12,14 +12,14 @@ from PIL import Image
 import pandas as pd
 
 class InspectorOblique2:
-    def __init__(self, input_dir, weight_dir, weight_list, output_dir):
+    def __init__(self, input_dir, weight_dir, weight_list, output_dir, gpu_id):
         self.input_dir = input_dir
         self.weight_dir = weight_dir
         self.weight_list = weight_list
         self.output_dir = output_dir
         self.crop_image_size = {'width': 1100, 'height': 256}
         self.buffer = 150
-        self._set_predictor(weight_list)
+        self._set_predictor(weight_list, gpu_id)
         
     def _setup_cfg(self, gpu_id, weight_path, threshold):
         cfg = get_cfg()
@@ -31,11 +31,11 @@ class InspectorOblique2:
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg
         
-    def _set_predictor(self, weight_list):
+    def _set_predictor(self, weight_list, gpu_id):
         self.predictor = []
         for weight, thresh in weight_list:
             weight_path = os.path.join(self.weight_dir, weight)
-            cfg = self._setup_cfg(0, weight_path, thresh)
+            cfg = self._setup_cfg(gpu_id, weight_path, thresh)
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
