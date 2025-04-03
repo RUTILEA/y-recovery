@@ -10,6 +10,7 @@ import glob
 import os
 import json
 import numpy as np
+from tqdm import tqdm
 
 class InferenceMain:
     def __init__(self, input_dir, weight_dir, weights_list, output_dir):
@@ -26,13 +27,13 @@ class InferenceMain:
         os.makedirs(output_dir, exist_ok=True)
         self.z_inspector = InspectorZaxis(input_dir, weights_dir, weights_list['Zaxis'], output_dir)
         
-        input_dir = os.path.join(self.input_dir, "[オブリーク1]")
+        input_dir = os.path.join(self.input_dir, "[oblique1]")
         weights_dir = os.path.join(self.weight_dir, "oblique1")
         output_dir = os.path.join(self.output_dir, "oblique1")
         os.makedirs(output_dir, exist_ok=True)
         self.ob1_inspector = InspectorOblique1(input_dir, weights_dir, weights_list['oblique1'], output_dir)
         
-        input_dir = os.path.join(self.input_dir, "[オブリーク2]")
+        input_dir = os.path.join(self.input_dir, "[oblique2]")
         weights_dir = os.path.join(self.weight_dir, "oblique2")
         output_dir = os.path.join(self.output_dir, "oblique2")
         os.makedirs(output_dir, exist_ok=True)
@@ -87,21 +88,21 @@ class InferenceMain:
         slice_number = int(filename[-8:-4])
         img = self.z_inspector.read_image(filename)
         z_index = self.extract_index(filename)
-        boxes_z = self.z_inspector.inspect(img, slice_number, save=True, saveID=f"{fileID}_{slice_number}")
+        boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}")
         boxes_z = self.merge_boxes(boxes_z)
         print(f"z_index: {z_index}, boxes: {boxes_z}")
         
         ob2_boxes = self.convert_Z_to_oblique2(boxes_z, z_index)
         for p in ob2_boxes:
             idx = p[0]; x = p[1]; y = p[2]
-            filename = 'オブリーク2_' + fileID + f"_{idx:04}.tif"
+            filename = 'oblique2_' + fileID + f"_{idx:04}.png"
             if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
                 # print(os.path.join(self.ob2_inspector.input_dir, filename))
                 continue
             else:
                 pass
             img_ob2 = self.ob2_inspector.read_image(filename)
-            boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=True, saveID=f"{fileID}_{idx}")
+            boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=False, saveID=f"{fileID}_{idx}")
             for boxes in boxes_ob2:
                 boxes = self.merge_boxes(boxes)
                 for box in boxes:
@@ -118,7 +119,7 @@ class InferenceMain:
         for p in ob1_boxes:
             idx = p[0]; x = p[1]; y = p[2]
             # for i in range(-1, 5):
-            filename = 'オブリーク1_' + fileID + f"_{idx:04}.tif"
+            filename = 'oblique1_' + fileID + f"_{idx:04}.png"
             print(filename)
             if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
                 # print(f"not found: {filename}")
@@ -160,9 +161,10 @@ class InferenceMain:
     def inspect_one_cell(self, input_dir=None):
         if input_dir is None: input_dir = self.input_dir
         input_path = glob.escape(self.z_inspector.input_dir)
-        input_files = glob.glob(os.path.join(input_path, "*.tif"))
+        input_files = glob.glob(os.path.join(input_path, "*.png"))
         for filename in input_files:
             fileID = f"{filename.split('_')[-3]}_{filename.split('_')[-2]}"
+            print('name:', filename, 'id:', fileID)
             is_detected = self.inspect(filename, fileID)
             print(f"filename: {filename.split('/')[-1]}, detected: {is_detected}")
             if is_detected:
@@ -171,14 +173,16 @@ class InferenceMain:
     
     def inspect_cells(self):
         cnt = 0
-        input_dirs = os.listdir(self.input_dir)
-        for input_dir in input_dirs:
+        input_dirs = [folder for folder in os.listdir(self.input_dir) if folder != ".gitkeep"]
+        results = {input_dir: None for input_dir in input_dirs}
+        for input_dir in tqdm(input_dirs):
             cell_path = os.path.join(self.input_dir, input_dir)
             cellID = f"{input_dir.split('_')[0]}_{input_dir.split('_')[1]}"
             self.z_inspector.input_dir = os.path.join(cell_path, "[Z軸]")
-            # self.ob1_inspector.input_dir = os.path.join(cell_path, "[オブリーク1]")
-            self.ob2_inspector.input_dir = os.path.join(cell_path, "[オブリーク2]")
+            # self.ob1_inspector.input_dir = os.path.join(cell_path, "[oblique1]")
+            self.ob2_inspector.input_dir = os.path.join(cell_path, "[oblique2]")
             is_detected = self.inspect_one_cell(self.input_dir)
+            results[input_dir] = is_detected
             if is_detected:
                 cnt += 1
                 print(f"detected: {cellID}")
@@ -186,18 +190,20 @@ class InferenceMain:
                 print(f"not detected: {cellID}")
                 
         print(f"detect count: {cnt}/{len(input_dirs)}")
+        with open(os.path.join(self.output_dir, "results.json"), 'w') as f:
+            json.dump(results, f, indent=4)
             
     
 if __name__ == '__main__':
     import time
     start = time.time()
-    input_dir = "/workspace/data/sample_test_data"   
+    input_dir = "/workspace/data/OK_data"
     weights_dir = "/workspace/weights/"
-    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 0.1)],\
+    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 1)],\
                     'oblique1': [("model_main.pth", 0.8)],\
                     'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.3), ("model_small.pth", 0.9)]}
     
-    output_dir = "/workspace/data/results/sample_test_data"
+    output_dir = "/workspace/data/results/OK_data"
     inference = InferenceMain(input_dir, weights_dir, weights_list, output_dir)
     inference.inspect_cells()
     

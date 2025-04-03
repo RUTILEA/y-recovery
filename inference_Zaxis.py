@@ -179,7 +179,7 @@ class InspectorZaxis:
             output = self.predictor[0](img) # main
             isinstance = output["instances"]
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-            self.save_image(img, output, filename.split('.')[-1] + "_main.tif")
+            self.save_image(img, output, filename.split('.')[-1] + "_main.png")
             ok = self.is_substance(boxes, point)
             if ok: detect = True
         
@@ -211,7 +211,7 @@ class InspectorZaxis:
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
                 boxes =self.remove_boxes(img, boxes, slice_number)
-                self.save_image(img, outputs, filename.split('/')[-1].split('.')[0] + f"_{i}" + ".tif")
+                self.save_image(img, outputs, filename.split('/')[-1].split('.')[0] + f"_{i}" + ".png")
                 ok = self.is_substance(boxes, point)
                 if ok: detect = True
                 
@@ -231,7 +231,7 @@ class InspectorZaxis:
                 outputs = self.predictor[2](bead_img)
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-                self.save_image(bead_img, outputs, filename.split('/')[-1].split('.')[0] + f"_{i+2}" + ".tif")
+                self.save_image(bead_img, outputs, filename.split('/')[-1].split('.')[0] + f"_{i+2}" + ".png")
                 ok = self.is_substance(boxes, point)
                 if ok: detect = True
             
@@ -253,7 +253,7 @@ class InspectorZaxis:
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             detected_areas = self.remove_boxes(img, detected_areas, slice_number)
-            if save: self.save_image(img, outputs, saveID + f"_{i}" + ".tif")
+            if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
         
         if slice_number < 185 or slice_number > 253:
             return detected_areas
@@ -266,13 +266,13 @@ class InspectorZaxis:
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
             boxes = self.convert_coordinate(boxes, height, width, i)
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
-            if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".tif")
+            if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
         
         return detected_areas
     
     def inspect_one_cell(self):
         input_path = glob.escape(self.input_dir)
-        input_files = glob.glob(os.path.join(input_path, "*.tif"))
+        input_files = glob.glob(os.path.join(input_path, "*.png"))
         for filename in input_files:
             fileID = f"{filename.split('_')[-3]}_{filename.split('_')[-2]}"
             slice_number = int(filename[-8:-4])

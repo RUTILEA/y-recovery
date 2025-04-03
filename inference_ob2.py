@@ -130,7 +130,7 @@ class InspectorOblique2:
                     outputs = self.predictor[k](crop_img)
                     isinstance = outputs["instances"]
                     boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-                    self.save_image(crop_img, outputs, filename.split('.')[0]+f'_{3*k+i}'+'.tif')
+                    self.save_image(crop_img, outputs, filename.split('.')[0]+f'_{3*k+i}'+'.png')
                     ok = self.is_substance(boxes, point)
                     if ok: detect = True
                 
@@ -152,12 +152,12 @@ class InspectorOblique2:
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
                 boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
                 detected_areas.append(boxes)
-                if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.tif')
+                if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.png')
         return detected_areas
     
     def inspect_one_cell(self):
         input_path = glob.escape(self.input_dir)
-        input_files = glob.glob(os.path.join(input_path, "*.tif"))
+        input_files = glob.glob(os.path.join(input_path, "*.png"))
         for filename in input_files:
             slice_number = int(filename[-8:-4])
             if slice_number < 400 or 624 < slice_number: continue
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     inspector = InspectorOblique2(input_dir, weight_dir, weights_list, output_dir)
     inspector.check_inspect()
     
-    # input_dir = "/workspace/data/NG_data/1GP170529A0214_正極_20170708_180638/[オブリーク2]"   
+    # input_dir = "/workspace/data/NG_data/1GP170529A0214_正極_20170708_180638/[oblique2]"   
     # weights_dir = "/workspace/weights/oblique2/"
     # weights_list = [("model_main.pth", 0.1), ("model_sub.pth", 0.2)]
     # output_dir = "/workspace/data/results/oblique2/170529A0214P_test"
