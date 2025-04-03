@@ -1,4 +1,10 @@
+__pycache__/
 data/results/
 weights/Zaxis/
 weights/oblique1/
 weights/oblique2/
+data/NG_data_A/1GP*
+data/NG_data_B/1GP*
+data/OK_data/1GP*
+data/sample_test_data_png/1GP*
+data/sample_test_data_tif/1GP*
