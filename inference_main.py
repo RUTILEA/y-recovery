@@ -221,10 +221,39 @@ if __name__ == '__main__':
     output_dir = "/workspace/data/results/NG_data_B"
     gpu_id = 4
     
+    import sys
+    if len(sys.argv) == 4:
+        input_dir, output_dir, gpu_id = sys.argv[1:]
+        print(input_dir, output_dir, gpu_id)
+        # exit()
+    
     # input_dir, output_dir, gpu_id = "/workspace/data/OK_data1", "/workspace/data/results/OK_data1", 0
-    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data2", "/workspace/data/results/OK_data2", 3
-    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data3", "/workspace/data/results/OK_data3", 4
-    input_dir, output_dir, gpu_id = "/workspace/data/OK_data4", "/workspace/data/results/OK_data4", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data2", "/workspace/data/results/OK_data2", 0
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data3", "/workspace/data/results/OK_data3", 0
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data4", "/workspace/data/results/OK_data4", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data5", "/workspace/data/results/OK_data5", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data6", "/workspace/data/results/OK_data6", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data7", "/workspace/data/results/OK_data7", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data8", "/workspace/data/results/OK_data8", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data9", "/workspace/data/results/OK_data9", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data10", "/workspace/data/results/OK_data10", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data11", "/workspace/data/results/OK_data11", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data12", "/workspace/data/results/OK_data12", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/OK_data13", "/workspace/data/results/OK_data13", 0
+    
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A1", "/workspace/data/results/NG_data_A1", 0
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A2", "/workspace/data/results/NG_data_A2", 0
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A3", "/workspace/data/results/NG_data_A3", 0
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A4", "/workspace/data/results/NG_data_A4", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A5", "/workspace/data/results/NG_data_A5", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A6", "/workspace/data/results/NG_data_A6", 3
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B1", "/workspace/data/results/NG_data_B1", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B2", "/workspace/data/results/NG_data_B2", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B3", "/workspace/data/results/NG_data_B3", 4
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B4", "/workspace/data/results/NG_data_B4", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B5", "/workspace/data/results/NG_data_B5", 5
+    # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_B6", "/workspace/data/results/NG_data_B6", 5
+    
     
     # input_dir, output_dir, gpu_id = "/workspace/data/OK_data", "/workspace/data/results/OK_data", 0
     # input_dir, output_dir, gpu_id = "/workspace/data/NG_data_A", "/workspace/data/results/NG_data_A", 3
