@@ -61,9 +61,9 @@ class InspectorZaxis:
             (620, 405, 94, 645, 415, 165),
             (620, 610, 98, 645, 620, 165),
             (355, 600, 166, 400, 620, 176),
-            (80, 395, 230, 990, 405, 240),
-            (80, 620, 230, 990, 630, 240),
-            (80, 620, 230, 990, 630, 240),
+            # (80, 395, 230, 990, 405, 240),
+            # (80, 620, 230, 990, 630, 240),
+            # (80, 620, 230, 990, 630, 240),
             (638, 500, 210, 650, 521, 256),
             (500, 500, 245, 525, 525, 256),
         ]
@@ -282,9 +282,9 @@ class InspectorZaxis:
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             detected_areas = self.remove_boxes(img, detected_areas, slice_number)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
-            if len(detected_areas) != 0:
-                self.save_image2(img, detected_areas, saveID + f"_{i}" + ".png")
-                open(os.path.join(self.output_dir, saveID + f"_{i}" + ".txt"), "w").write(str(detected_areas))
+        if len(detected_areas) != 0:
+            self.save_image2(img, detected_areas, saveID + ".png")
+            open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
         
         if slice_number < 185 or slice_number > 253:
             return detected_areas
@@ -298,9 +298,9 @@ class InspectorZaxis:
             boxes = self.convert_coordinate(boxes, height, width, i)
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
-            if len(detected_areas) != 0:
-                self.save_image2(img, detected_areas, saveID + f"_{i+2}" + ".png")
-                open(os.path.join(self.output_dir, saveID + f"_{i+2}" + ".txt"), "w").write(str(detected_areas))
+        # if len(detected_areas) != 0:
+        self.save_image2(img, detected_areas, saveID + ".png")
+        open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
 
         return detected_areas
     

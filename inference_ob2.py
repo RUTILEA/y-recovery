@@ -141,6 +141,14 @@ class InspectorOblique2:
                 print(f"not detected: {filename}")
                 pass
         print(f"detect count: {cnt}/{len(input_files)}")
+
+    def save_image2(self, img, detected_areas, filename):
+        img_copy = img.copy()
+        for box in [box for areas in detected_areas for box in areas]:
+            x1, y1, x2, y2 = map(int, box)
+            cv2.rectangle(img_copy, (x1, y1), (x2, y2), (0, 255, 0), 1)  # 緑色の矩形を描画
+        output_path = os.path.join(self.output_dir, filename)
+        cv2.imwrite(output_path, img_copy)
         
     def inspect(self, img, save=False, saveID=None):
         detected_areas = []
@@ -153,6 +161,9 @@ class InspectorOblique2:
                 boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
                 detected_areas.append(boxes)
                 if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.png')
+        if len(detected_areas) != 0:
+            self.save_image2(img, detected_areas, saveID+'.png')
+            
         return detected_areas
     
     def inspect_one_cell(self):

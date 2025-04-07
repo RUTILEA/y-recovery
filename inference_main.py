@@ -92,10 +92,12 @@ class InferenceMain:
         boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}")
         boxes_z = self.merge_boxes(boxes_z)
         print(f"z_index: {z_index}, boxes: {boxes_z}")
+        # return len(boxes_z) > 0
         
         is_detected = False
+        detected_boxes = []
         ob2_boxes = self.convert_Z_to_oblique2(boxes_z, z_index)
-        for p in ob2_boxes:
+        for b, p in zip(boxes_z, ob2_boxes):
             idx = p[0]; x = p[1]; y = p[2]
             filename = 'oblique2_' + fileID + f"_{idx:04}.png"
             if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
@@ -104,7 +106,7 @@ class InferenceMain:
             else:
                 pass
             img_ob2 = self.ob2_inspector.read_image(filename)
-            boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=False, saveID=f"{fileID}_{idx}")
+            boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=False, saveID=f"{fileID}_{idx}_{z_index}")
             for boxes in boxes_ob2:
                 boxes = self.merge_boxes(boxes)
                 for box in boxes:
@@ -115,12 +117,12 @@ class InferenceMain:
                         # del img; del img_ob2 
                         # import gc
                         # gc.collect() 
-                        self.save_image(img, boxes_z, z_filename)
                         is_detected = True
+                        detected_boxes.append(["ob2", p, b.tolist()])
                         # return True
                         
         ob1_boxes = self.convert_Z_to_oblique1(boxes_z, z_index)
-        for p in ob1_boxes:
+        for b, p in zip(boxes_z, ob1_boxes):
             idx = p[0]; x = p[1]; y = p[2]
             # for i in range(-1, 5):
             filename = 'oblique1_' + fileID + f"_{idx:04}.png"
@@ -132,22 +134,27 @@ class InferenceMain:
                 # print(f"found: {filename}")
                 pass
             img_ob1 = self.ob1_inspector.read_image(filename)
-            boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}")
+            boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}_{z_index}")
             for boxes in boxes_ob1:
                 boxes = self.merge_boxes(boxes)
                 for box in boxes:
                     center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
                     if abs(center_x - x) < 20 and abs(center_y - y) < 20:
-                        # print(f"detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
-                        self.save_image(img, boxes_z, z_filename)
+                        print(f"####################detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
                         is_detected = True
+                        detected_boxes.append(["ob1", p, b.tolist()])
                         # return True
+        print(detected_boxes)
+        # if len(detected_boxes) != 0:
+        self.save_image(img, [box[2] for box in detected_boxes], z_filename)
+        json.dump(detected_boxes, open(os.path.join(self.output_dir, f"{fileID}_{z_index}.json"), 'w'))
         # return False
         return is_detected
 
     def save_image(self, img, boxes_z, z_filename):
         import cv2
         output_image = img.copy()
+        print(os.path.join(self.output_dir, "detected"))
         os.makedirs(os.path.join(self.output_dir, "detected"), exist_ok=True)
         for box in boxes_z:
             xl, yl, xr, yr = map(int, box)
@@ -177,14 +184,24 @@ class InferenceMain:
         if input_dir is None: input_dir = self.input_dir
         input_path = glob.escape(self.z_inspector.input_dir)
         input_files = glob.glob(os.path.join(input_path, "*.png"))
-        for filename in input_files:
+        
+        # NGデータの場合のみ、不良がある層のみに制限
+        data = json.load(open("complete_correct_data.json"))
+        data_name = os.path.basename(os.path.dirname(input_path)).split('_')[0]
+        valid_input_files = [file for file in input_files if data_name not in data or file.endswith(f"{data[data_name]['pole']}_{data_name}_{data[data_name]['z'].zfill(4)}.png")]
+        print(valid_input_files)
+        
+        detection_result = False
+        for filename in valid_input_files:
             fileID = f"{filename.split('_')[-3]}_{filename.split('_')[-2]}"
             print('name:', filename, 'id:', fileID)
             is_detected = self.inspect(filename, fileID)
             print(f"filename: {filename.split('/')[-1]}, detected: {is_detected}")
             if is_detected:
-                return True
-        return False
+                detection_result = True
+                # return True
+        return detection_result
+        # return False
 
     def inspect_cells(self):
         cnt = 0
@@ -214,9 +231,9 @@ if __name__ == '__main__':
     start = time.time()
     input_dir = "/workspace/data/NG_data_B"
     weights_dir = "/workspace/weights/"
-    weights_list = {'Zaxis': [("model_main.pth", 0.6), ("model_thin.pth", 0.065), ("model_bead.pth", 1)],\
-                    'oblique1': [("model_main.pth", 0.8)],\
-                    'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.3), ("model_small.pth", 0.9)]}
+    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.085), ("model_bead.pth", 1)],\
+                    'oblique1': [("model_main.pth", 0.001)],\
+                    'oblique2': [("model_main.pth", 0.001), ("model_sub.pth", 0.001), ("model_small.pth", 0.001)]}
     
     output_dir = "/workspace/data/results/NG_data_B"
     gpu_id = 4

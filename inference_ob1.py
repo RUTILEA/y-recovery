@@ -148,12 +148,14 @@ class InspectorOblique1:
             new_boxes.append(box)
         return new_boxes
         
-    def inspect(self, img):
+    def inspect(self, img, save=False, saveID=None):
         crop_img = self.crop_images(img) 
         outputs = self.predictor[0](crop_img)
         isinstance = outputs["instances"]
         boxes = isinstance.pred_boxes.tensor.cpu().numpy()
         boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1])
+        if len(boxes) != 0 and save:
+            self.save_image(img, outputs, saveID+'.png')
         return boxes
         
 
