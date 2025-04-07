@@ -2,7 +2,7 @@
 # Run Python scripts in the background without -it flag
 docker exec yuasa-server python3 inference_main.py /workspace/data/OK_data1 /workspace/data/results/OK_data1 0 &
 PID1=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/OK_data2 /workspace/data/results/OK_data1 0 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/OK_data2 /workspace/data/results/OK_data2 0 &
 PID2=$!
 docker exec yuasa-server python3 inference_main.py /workspace/data/OK_data3 /workspace/data/results/OK_data3 0 &
 PID3=$!

@@ -139,8 +139,6 @@ class InspectorZaxis:
         cv2.imwrite(output_path, out_image[:, :, ::-1])
 
     def save_image2(self, img, detected_areas, filename):
-        if len(detected_areas) == 0:
-            return
         img_copy = img.copy()
         for box in detected_areas:
             x1, y1, x2, y2 = map(int, box)
@@ -284,7 +282,9 @@ class InspectorZaxis:
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             detected_areas = self.remove_boxes(img, detected_areas, slice_number)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
-            self.save_image2(img, detected_areas, saveID + f"_{i}" + ".png")
+            if len(detected_areas) != 0:
+                self.save_image2(img, detected_areas, saveID + f"_{i}" + ".png")
+                open(os.path.join(self.output_dir, saveID + f"_{i}" + ".txt"), "w").write(str(detected_areas))
         
         if slice_number < 185 or slice_number > 253:
             return detected_areas
@@ -298,8 +298,10 @@ class InspectorZaxis:
             boxes = self.convert_coordinate(boxes, height, width, i)
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
-            self.save_image2(img, detected_areas, saveID + f"_{i+2}" + ".png")
-        
+            if len(detected_areas) != 0:
+                self.save_image2(img, detected_areas, saveID + f"_{i+2}" + ".png")
+                open(os.path.join(self.output_dir, saveID + f"_{i+2}" + ".txt"), "w").write(str(detected_areas))
+
         return detected_areas
     
     def inspect_one_cell(self):
