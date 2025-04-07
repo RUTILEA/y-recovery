@@ -92,3 +92,7 @@ mv NG_data_B5/results.json NG_dataB_detected/NG_data_B5.json
 mv NG_data_B6/results.json NG_dataB_detected/NG_data_B6.json
 zip -r NG_dataA_detected.zip NG_dataA_detected
 zip -r NG_dataB_detected.zip NG_dataB_detected
+
+
+ps aux | grep "python3 inference_main.py" | awk '{print $2}' | xargs kill -9
+rm -r data/results/

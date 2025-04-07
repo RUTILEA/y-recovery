@@ -214,7 +214,7 @@ if __name__ == '__main__':
     start = time.time()
     input_dir = "/workspace/data/NG_data_B"
     weights_dir = "/workspace/weights/"
-    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.8), ("model_bead.pth", 1)],\
+    weights_list = {'Zaxis': [("model_main.pth", 0.6), ("model_thin.pth", 0.065), ("model_bead.pth", 1)],\
                     'oblique1': [("model_main.pth", 0.8)],\
                     'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.3), ("model_small.pth", 0.9)]}
     
