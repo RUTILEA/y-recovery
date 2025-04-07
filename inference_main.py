@@ -52,7 +52,7 @@ class InferenceMain:
             y_oblique = 256 - z_index
             index_oblique = center_x
             P.append((index_oblique, x_oblique, y_oblique))
-        return boxes
+        return P
     
     def convert_Z_to_oblique2(self, boxes, z_index):
         P = []
@@ -111,7 +111,8 @@ class InferenceMain:
                 boxes = self.merge_boxes(boxes)
                 for box in boxes:
                     center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-                    if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                    # if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                    if True:
                         print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")
                         print('detect_area:', center_x, center_y)
                         # del img; del img_ob2 
@@ -128,23 +129,22 @@ class InferenceMain:
             filename = 'oblique1_' + fileID + f"_{idx:04}.png"
             print(filename)
             if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
-                # print(f"not found: {filename}")
+                print(f"not found: {filename}")
                 continue
             else:
                 # print(f"found: {filename}")
                 pass
             img_ob1 = self.ob1_inspector.read_image(filename)
             boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}_{z_index}")
-            for boxes in boxes_ob1:
-                boxes = self.merge_boxes(boxes)
-                for box in boxes:
-                    center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-                    if abs(center_x - x) < 20 and abs(center_y - y) < 20:
-                        print(f"####################detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
-                        is_detected = True
-                        detected_boxes.append(["ob1", p, b.tolist()])
-                        # return True
-        print(detected_boxes)
+            for box in boxes_ob1:
+                center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
+                # if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                if True:
+                    print(f"####################detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
+                    is_detected = True
+                    detected_boxes.append(["ob1", p, b.tolist()])
+                    # return True
+        # print(detected_boxes)
         # if len(detected_boxes) != 0:
         self.save_image(img, [box[2] for box in detected_boxes], z_filename)
         json.dump(detected_boxes, open(os.path.join(self.output_dir, f"{fileID}_{z_index}.json"), 'w'))
@@ -211,7 +211,7 @@ class InferenceMain:
             cell_path = os.path.join(self.input_dir, input_dir)
             cellID = f"{input_dir.split('_')[0]}_{input_dir.split('_')[1]}"
             self.z_inspector.input_dir = os.path.join(cell_path, "[Z軸]")
-            # self.ob1_inspector.input_dir = os.path.join(cell_path, "[oblique1]")
+            self.ob1_inspector.input_dir = os.path.join(cell_path, "[oblique1]")
             self.ob2_inspector.input_dir = os.path.join(cell_path, "[oblique2]")
             is_detected = self.inspect_one_cell(self.input_dir)
             results[input_dir] = is_detected
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     start = time.time()
     input_dir = "/workspace/data/NG_data_B"
     weights_dir = "/workspace/weights/"
-    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.085), ("model_bead.pth", 1)],\
+    weights_list = {'Zaxis': [("model_main.pth", 0.60), ("model_thin.pth", 0.065), ("model_bead.pth", 0.1)],\
                     'oblique1': [("model_main.pth", 0.001)],\
                     'oblique2': [("model_main.pth", 0.001), ("model_sub.pth", 0.001), ("model_small.pth", 0.001)]}
     

@@ -143,8 +143,8 @@ class InspectorOblique1:
         
         ### ここから修正
         for box in boxes:
-            box[0] += center_x - 3*(self.crop_image_size['width']//2) + self.buffer
-            box[2] += center_x - 3*(self.crop_image_size['width']//2) + self.buffer
+            box[0] += center_x - 3*(self.crop_size['width']//2)
+            box[2] += center_x - 3*(self.crop_size['width']//2)
             new_boxes.append(box)
         return new_boxes
         
@@ -155,7 +155,7 @@ class InspectorOblique1:
         boxes = isinstance.pred_boxes.tensor.cpu().numpy()
         boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1])
         if len(boxes) != 0 and save:
-            self.save_image(img, outputs, saveID+'.png')
+            self.save_image(crop_img, outputs, saveID+'.png')
         return boxes
         
 
