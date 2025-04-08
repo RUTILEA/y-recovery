@@ -90,7 +90,6 @@ class InferenceMain:
         img = self.z_inspector.read_image(filename)
         z_index = self.extract_index(filename)
         boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}")
-        boxes_z = self.merge_boxes(boxes_z)
         print(f"z_index: {z_index}, boxes: {boxes_z}")
         # return len(boxes_z) > 0
         

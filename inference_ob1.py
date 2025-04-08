@@ -26,6 +26,7 @@ class InspectorOblique1:
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
         cfg.MODEL.WEIGHTS = weight_path
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+        cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.2
         cfg.DATASETS.TEST = ("val2", "my_dataset_val3",)
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg

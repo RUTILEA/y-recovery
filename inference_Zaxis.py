@@ -28,6 +28,7 @@ class InspectorZaxis:
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
         cfg.MODEL.WEIGHTS = weight_path
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+        cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.2
         cfg.DATASETS.TEST = ("val2", "my_dataset_val3",)
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg
@@ -172,7 +173,17 @@ class InspectorZaxis:
         if box1[3] <= box2[1] or box2[3] <= box1[1]:
             return False
         return True
-    
+
+    def merge_boxes(self, boxes):
+        new_boxes = np.empty((0, 4), int)
+        for b1 in boxes:
+            for b2 in new_boxes:
+                if self.check_overlap(b1, b2):
+                    break
+            else:
+                new_boxes = np.vstack([new_boxes, b1])
+        return new_boxes
+
     def convert_coordinate(self, boxes, height, width, right):
         new_boxes = np.empty((0, 4), int)
         center_x, center_y = width // 2, height // 2
@@ -284,25 +295,27 @@ class InspectorZaxis:
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
             detected_areas = self.remove_boxes(img, detected_areas, slice_number)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
+        
+        detected_areas = self.merge_boxes(detected_areas)
         if len(detected_areas) != 0:
             self.save_image2(img, detected_areas, saveID + ".png")
             open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
         
-        if slice_number < 185 or slice_number > 253:
-            return detected_areas
-        
-        # bead部
-        crop_imgs = self.crop_images(img)
-        for i, bead_img in enumerate(crop_imgs):
-            outputs = self.predictor[2](bead_img)
-            isinstance = outputs["instances"]
-            boxes = isinstance.pred_boxes.tensor.cpu().numpy()
-            boxes = self.convert_coordinate(boxes, height, width, i)
-            detected_areas = np.concatenate([detected_areas, boxes], axis=0)
-            if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
-        # if len(detected_areas) != 0:
-        self.save_image2(img, detected_areas, saveID + ".png")
-        open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
+        if 185 <= slice_number <= 253:
+            # bead部
+            crop_imgs = self.crop_images(img)
+            for i, bead_img in enumerate(crop_imgs):
+                outputs = self.predictor[2](bead_img)
+                isinstance = outputs["instances"]
+                boxes = isinstance.pred_boxes.tensor.cpu().numpy()
+                boxes = self.convert_coordinate(boxes, height, width, i)
+                detected_areas = np.concatenate([detected_areas, boxes], axis=0)
+                if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
+
+        detected_areas = self.merge_boxes(detected_areas)
+        if len(detected_areas) != 0:
+            self.save_image2(img, detected_areas, saveID + ".png")
+            open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
 
         return detected_areas
     
