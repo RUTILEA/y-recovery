@@ -44,10 +44,19 @@ class InspectorZaxis:
     
     def _set_exclusion_area(self):
         self.exclusion_area_positive = [
-            (20, 600, 0, 40, 620,40),  # 四隅の出っ張り
+            (0, 300, 0, 80, 700, 256),  # 左端
+            (945, 300, 0, 1024, 700, 256),  # 右端
+            (20, 600, 0, 40, 620, 40),  # 四隅の出っ張り
             (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
             (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
             (990, 600, 0, 1010, 620, 40),  # 四隅の出っ張り
+            (60, 440, 50, 965, 475, 77),  # 上の黒い線
+            (60, 550, 30, 965, 585, 60),  # 下の黒い線
+            (60, 535, 61, 965, 600, 77),  # 下の黒い線
+            (405, 400, 82, 410, 580, 95),  # 中央の左側の一時的な白い領域**
+            (455, 400, 82, 460, 580, 95),  # 中央の左側の一時的な白い領域**
+            (560, 435, 82, 565, 615, 95),  # 中央の右側の一時的な白い領域**
+            (620, 435, 82, 625, 615, 95),  # 中央の右側の一時的な白い領域**
             (495, 405, 78, 525, 620, 156),  # 中央の白い点*
             (355, 405, 90, 375, 620, 173),  # 中央左側の白い点
             (645, 405, 90, 665, 620, 176),  # 中央右側の白い点
@@ -65,14 +74,34 @@ class InspectorZaxis:
             (620, 610, 98, 645, 620, 173),  # 中央右側下部の白い点
             (305, 405, 90, 315, 620, 156),  # 左部右端の白い点*
             (710, 405, 90, 720, 620, 156),  # 右部左端の白い点*
+            (425, 470, 100, 440, 585, 133),  # 中央の右側の一時的な白い領域**
+            (585, 495, 100, 600, 605, 133),  # 中央の右側の一時的な白い領域**
+            (405, 400, 140, 410, 580, 155),  # 中央の左側の一時的な白い領域**
+            (455, 400, 140, 460, 580, 155),  # 中央の左側の一時的な白い領域**
+            (560, 435, 140, 565, 615, 155),  # 中央の右側の一時的な白い領域**
+            (620, 435, 140, 625, 615, 155),  # 中央の右側の一時的な白い領域**
+            (120, 405, 142, 145, 620, 165),  # 右部ビード部の境界**
+            (880, 405, 142, 905, 620, 165),  # 左部ビード部の境界**
+            (110, 400, 157, 340, 440, 209),  # 左部ビード部上
+            (110, 580, 157, 340, 620, 209),  # 左部ビード部下
+            (110, 400, 157, 120, 620, 209),  # 左部ビード部左
+            (300, 400, 157, 340, 620, 209),  # 左部ビード部右
+            (685, 400, 157, 915, 440, 209),  # 右部ビード部上
+            (685, 580, 157, 915, 620, 209),  # 右部ビード部下
+            (685, 400, 157, 725, 620, 209),  # 右部ビード部左
+            (905, 400, 157, 915, 620, 209),  # 右部ビード部右
+            (725, 440, 157, 745, 460, 209),  # 右側ビード部左上
             (130, 450, 157, 140, 575, 190),  # 左部白色の棒*
             (885, 450, 157, 895, 575, 190),  # 右部白色の棒*
             # (80, 395, 230, 990, 405, 240),  # 物体上部の境界**
             # (80, 620, 230, 990, 630, 240),  # 物体下部の境界**
             (630, 500, 210, 655, 525, 265),  # 画面右部の白丸**
+            (490, 490, 191, 535, 535, 256),  # 中央の白点
         ]
 
         self.exclusion_area_negative = [
+            # (0, 300, 0, 80, 700, 256),  # 左端
+            # (945, 300, 0, 1024, 700, 256),  # 右端
             (20, 600, 0, 40, 620, 40),  # 四隅の出っ張り
             (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
             (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
@@ -93,11 +122,19 @@ class InspectorZaxis:
             (305, 405, 98, 315, 620, 165),  # 左部右端の白い点*
             (710, 405, 98, 720, 620, 165),  # 右部左端の白い点*
             (355, 595, 166, 395, 620, 180),  # 中央左側下部の白い点**
+            (110, 400, 157, 340, 440, 209),  # 左部ビード部上
+            (110, 580, 157, 340, 620, 209),  # 左部ビード部下
+            (110, 400, 157, 120, 620, 209),  # 左部ビード部左
+            (300, 400, 157, 340, 620, 209),  # 左部ビード部右
+            (685, 400, 157, 915, 440, 209),  # 右部ビード部上
+            (685, 580, 157, 915, 620, 209),  # 右部ビード部下
+            (685, 400, 157, 725, 620, 209),  # 右部ビード部左
+            (905, 400, 157, 915, 620, 209),  # 右部ビード部右
             (125, 450, 166, 145, 575, 195),  # 左部白色の棒*
             (880, 450, 166, 900, 575, 195),  # 右部白色の棒*
             # (80, 395, 230, 990, 405, 240),  # 物体上部の境界
             # (80, 620, 230, 990, 630, 240),  # 物体下部の境界
-            (495, 500, 200, 530, 525, 256),  # 中央の白点*
+            (490, 490, 191, 535, 535, 256),  # 中央の白点
         ]
         
     def black_boxes(self, image, boxes):
@@ -200,11 +237,11 @@ class InspectorZaxis:
         new_boxes = np.empty((0, 4), int)
         for box in boxes:
             for x1, y1, z1, x2, y2, z2 in self.exclusion_area_positive if is_positive_part else self.exclusion_area_negative:
-                if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]):
+                if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]) or (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
+                    if z_index == 189:
+                        print(f"box: {box}, z1: {z1}, z2: {z2}, x1: {x1}, y1: {y1}, x2: {x2}, y2: {y2}")
                     break
             else:
-                if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
-                    continue
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
         new_boxes = self.black_boxes(image, new_boxes)
         return new_boxes
@@ -335,14 +372,8 @@ class InspectorZaxis:
             isinstance = outputs["instances"]
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
-            detected_areas = self.remove_boxes(img, detected_areas, slice_number, is_positive_part)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
-        
-        detected_areas = self.merge_boxes(detected_areas)
-        if len(detected_areas) != 0:
-            self.save_image2(img, detected_areas, saveID + ".png")
-            open(os.path.join(self.output_dir, saveID + ".txt"), "w").write(json.dumps(detected_areas.tolist()))
-        
+                
         if 185 <= slice_number <= 253:
             # bead部
             crop_imgs = self.crop_images(img)
@@ -354,6 +385,7 @@ class InspectorZaxis:
                 detected_areas = np.concatenate([detected_areas, boxes], axis=0)
                 if save: self.save_image(bead_img, outputs, saveID + f"_{i+2}" + ".png")
 
+        detected_areas = self.remove_boxes(img, detected_areas, slice_number, is_positive_part)
         detected_areas = self.merge_boxes(detected_areas)
         if len(detected_areas) != 0:
             self.save_image2(img, detected_areas, saveID + ".png")

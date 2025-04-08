@@ -101,3 +101,4 @@ ps aux | grep "python3 inference_main.py" | awk '{print $2}' | xargs kill -9
 cd /home/user/shinzaki/y-recovery/
 rm -r data/results/
 sh inference_NG.sh
+docker exec yuasa-server python3 calc_accuray_z.py
