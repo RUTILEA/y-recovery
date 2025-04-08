@@ -152,6 +152,7 @@ class InspectorZaxis:
             anomaly = image[y1:y2, x1:x2]
             flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > -5
             
+            # TODO: からの配列にならない処理を追加する
             surrounding_area_averages = [
                 int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))),
                 int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))),
@@ -238,8 +239,6 @@ class InspectorZaxis:
         for box in boxes:
             for x1, y1, z1, x2, y2, z2 in self.exclusion_area_positive if is_positive_part else self.exclusion_area_negative:
                 if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]) or (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
-                    if z_index == 189:
-                        print(f"box: {box}, z1: {z1}, z2: {z2}, x1: {x1}, y1: {y1}, x2: {x2}, y2: {y2}")
                     break
             else:
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)

@@ -40,7 +40,36 @@ class InspectorOblique2:
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
-        
+
+    def black_boxes(self, image, boxes):
+        new_boxes = np.empty((0, 4), int)
+        buff = 5
+        height, width = image.shape[:2]
+        for box in boxes:
+            x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            # print(image.shape, image[max(0, y1-buff):y1, x1:x2].shx1, y1, x2, y2, buff)
+            surrounding_area = image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3)
+            surrounding_area = np.concatenate([surrounding_area, image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3)], axis=0)
+            
+            # surrounding_area = image[max(0, y1-buff):min(height, y2+buff), max(0, x1-buff):min(width, x2+buff)]
+            anomaly = image[y1:y2, x1:x2]
+            flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > -10
+            
+            # surrounding_area_averages = [
+            #     int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))),
+            #     int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))),
+            #     int(np.mean(image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3))),
+            #     int(np.mean(image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3))),
+            # ]
+            # flag2 = int(np.mean(anomaly)) - np.mean(sorted(surrounding_area_averages)[1:3]) > -5
+            flag = flag1 # and flag2
+            
+            if flag:
+                new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+        return new_boxes
+
     def read_image(self, filename):
         image_path = os.path.join(self.input_dir, filename) 
         img = cv2.imread(image_path)
@@ -160,6 +189,7 @@ class InspectorOblique2:
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
                 boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
+                boxes = self.black_boxes(img, boxes)
                 detected_areas.append(boxes)
                 if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.png')
         if len(detected_areas) != 0:

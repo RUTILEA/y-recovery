@@ -92,7 +92,7 @@ class InferenceMain:
         is_positive_part = os.path.basename(filename).split('_')[1] == '正極'
         boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}", is_positive_part=is_positive_part)
         # print(f"filename: {filename}, is_positive_part: {is_positive_part} z_index: {z_index}, boxes: {boxes_z}")
-        return len(boxes_z) > 0
+        # return len(boxes_z) > 0
         
         is_detected = False
         detected_boxes = []
