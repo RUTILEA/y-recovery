@@ -95,6 +95,8 @@ zip -r NG_dataA_detected.zip NG_dataA_detected
 zip -r NG_dataB_detected.zip NG_dataB_detected
 
 sh inference_OK.sh
+docker exec yuasa-server python3 calc_accuray_z.py
+docker exec yuasa-server python3 calc_accuray_all.py
 ps aux | grep "python3 inference_main.py" | awk '{print $2}' | xargs kill -9
 cd /home/user/shinzaki/y-recovery/
 rm -r data/results/

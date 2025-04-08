@@ -89,9 +89,10 @@ class InferenceMain:
         z_filename = filename
         img = self.z_inspector.read_image(filename)
         z_index = self.extract_index(filename)
-        boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}")
-        print(f"z_index: {z_index}, boxes: {boxes_z}")
-        # return len(boxes_z) > 0
+        is_positive_part = os.path.basename(filename).split('_')[1] == '正極'
+        boxes_z = self.z_inspector.inspect(img, slice_number, save=False, saveID=f"{fileID}_{slice_number}", is_positive_part=is_positive_part)
+        # print(f"filename: {filename}, is_positive_part: {is_positive_part} z_index: {z_index}, boxes: {boxes_z}")
+        return len(boxes_z) > 0
         
         is_detected = False
         detected_boxes = []
@@ -116,15 +117,15 @@ class InferenceMain:
                         center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
                         if abs(center_x - x) < 20 and abs(center_y - y) < 20:
                         # if True:
-                            print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")
-                            print('detect_area:', center_x, center_y)
-                            # del img; del img_ob2 
-                            # import gc
-                            # gc.collect() 
+                            if i in detected_box_indeces:
+                                continue
+                            # print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")
+                            # print('detect_area:', center_x, center_y)
+                            # return True
                             is_detected = True
                             detected_boxes.append(["ob2", (idx, x, y), boxes_z[i].tolist()])
                             detected_box_indeces.add(i)
-                            # return True
+                            break
                 if i in detected_box_indeces:
                     break
                         
@@ -135,9 +136,9 @@ class InferenceMain:
             idx = p[0]; x = p[1]; y = p[2]
             for idx in range(p[0]-2, p[0]+3):
                 filename = 'oblique1_' + fileID + f"_{idx:04}.png"
-                print(filename)
+                # print(filename)
                 if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
-                    print(f"not found: {filename}")
+                    # print(f"not found: {filename}")
                     continue
                 else:
                     # print(f"found: {filename}")
@@ -148,11 +149,14 @@ class InferenceMain:
                     center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
                     if abs(center_x - x) < 20 and abs(center_y - y) < 20:
                     # if True:
-                        print(f"####################detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
+                        if i in detected_box_indeces:
+                            continue
+                        # print(f"detected! z_index:{z_index}, z_x:{x}, z_y:{y}")
+                        # return True
                         is_detected = True
                         detected_boxes.append(["ob1", (idx, x, y), boxes_z[i].tolist()])
                         detected_box_indeces.add(i)
-                        # return True
+                        break
                 if i in detected_box_indeces:
                     break
         # print(detected_boxes)
@@ -165,7 +169,6 @@ class InferenceMain:
     def save_image(self, img, boxes_z, z_filename):
         import cv2
         output_image = img.copy()
-        print(os.path.join(self.output_dir, "detected"))
         os.makedirs(os.path.join(self.output_dir, "detected"), exist_ok=True)
         for box in boxes_z:
             xl, yl, xr, yr = map(int, box)
@@ -200,14 +203,14 @@ class InferenceMain:
         data = json.load(open("complete_correct_data.json"))
         data_name = os.path.basename(os.path.dirname(input_path)).split('_')[0]
         valid_input_files = sorted([file for file in input_files if data_name not in data or file.endswith(f"{data[data_name]['pole']}_{data_name}_{data[data_name]['z'].zfill(4)}.png")])
-        print(valid_input_files)
+        # print(valid_input_files)
         
         detection_result = False
         for filename in valid_input_files:
             fileID = f"{filename.split('_')[-3]}_{filename.split('_')[-2]}"
-            print('name:', filename, 'id:', fileID)
+            # print('name:', filename, 'id:', fileID)
             is_detected = self.inspect(filename, fileID)
-            print(f"filename: {filename.split('/')[-1]}, detected: {is_detected}")
+            # print(f"filename: {filename.split('/')[-1]}, detected: {is_detected}")
             if is_detected:
                 detection_result = True
                 # return True
@@ -228,9 +231,10 @@ class InferenceMain:
             results[input_dir] = is_detected
             if is_detected:
                 cnt += 1
-                print(f"detected: {cellID}")
+                # print(f"detected: {cellID}")
             else:
-                print(f"not detected: {cellID}")
+                pass
+                # print(f"not detected: {cellID}")
                 
         print(f"detect count: {cnt}/{len(input_dirs)}")
         with open(os.path.join(self.output_dir, "results.json"), 'w') as f:

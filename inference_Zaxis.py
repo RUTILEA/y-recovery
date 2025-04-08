@@ -43,36 +43,66 @@ class InspectorZaxis:
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
     
     def _set_exclusion_area(self):
-        self.exclusion_area = [
-            (20, 600, 0, 40, 620, 40),
-            (20, 410, 0, 40, 430, 40),
-            (990, 410, 0, 1010, 430, 40),
-            (990, 600, 0, 1010, 620, 40),
-            (495, 405, 82, 525, 620, 165),
-            (295, 405, 82, 315, 620, 165),
-            (705, 405, 82, 730, 620, 165),
-            (355, 405, 90, 375, 620, 165),
-            (645, 405, 90, 665, 620, 165),
-            (95, 405, 90, 105, 620, 165),
-            (920, 405, 90, 930, 620, 165),
-            (460, 460, 98, 475, 570, 165),
-            (540, 460, 98, 555, 570, 165),
-            (375, 405, 98, 400, 415, 165),
-            (375, 600, 98, 400, 620, 165),
-            (620, 405, 94, 645, 415, 165),
-            (620, 610, 98, 645, 620, 165),
-            (355, 600, 166, 400, 620, 176),
-            # (80, 395, 230, 990, 405, 240),
-            # (80, 620, 230, 990, 630, 240),
-            # (80, 620, 230, 990, 630, 240),
-            (638, 500, 210, 650, 521, 256),
-            (500, 500, 245, 525, 525, 256),
+        self.exclusion_area_positive = [
+            (20, 600, 0, 40, 620,40),  # 四隅の出っ張り
+            (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
+            (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
+            (990, 600, 0, 1010, 620, 40),  # 四隅の出っ張り
+            (495, 405, 78, 525, 620, 156),  # 中央の白い点*
+            (355, 405, 90, 375, 620, 173),  # 中央左側の白い点
+            (645, 405, 90, 665, 620, 176),  # 中央右側の白い点
+            (95, 405, 78, 105, 620, 156),  # 左部左側の白い点*
+            (295, 405, 78, 305, 620, 156),  # 左部右側の白い点*
+            (720, 405, 78, 730, 620, 156),  # 右部左側の白い点*
+            (920, 405, 78, 930, 620, 156),  # 右部右側の白い点*
+            (460, 445, 98, 475, 570, 173),  # 中央すぐ左の白い点*
+            (540, 445, 98, 555, 570, 173),  # 中央すぐ右の白い点*
+            (390, 470, 90, 405, 550, 163),  # 中央左側中央の白い点**
+            (615, 470, 90, 630, 550, 163),  # 中央右側中央の白い点**
+            (375, 405, 98, 400, 415, 173),  # 中央左側上部の白い点
+            (375, 600, 98, 400, 620, 173),  # 中央左側下部の白い点
+            (620, 405, 94, 645, 415, 173),  # 中央右側上部の白い点
+            (620, 610, 98, 645, 620, 173),  # 中央右側下部の白い点
+            (305, 405, 90, 315, 620, 156),  # 左部右端の白い点*
+            (710, 405, 90, 720, 620, 156),  # 右部左端の白い点*
+            (130, 450, 157, 140, 575, 190),  # 左部白色の棒*
+            (885, 450, 157, 895, 575, 190),  # 右部白色の棒*
+            # (80, 395, 230, 990, 405, 240),  # 物体上部の境界**
+            # (80, 620, 230, 990, 630, 240),  # 物体下部の境界**
+            (630, 500, 210, 655, 525, 265),  # 画面右部の白丸**
         ]
-        # (80, 395, 230, 990, 405, 240), (80, 620, 230, 990, 630, 240)] 
+
+        self.exclusion_area_negative = [
+            (20, 600, 0, 40, 620, 40),  # 四隅の出っ張り
+            (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
+            (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
+            (990, 600, 0, 1010, 620, 40),  # 四隅の出っ張り
+            (495, 405, 82, 525, 620, 165),  # 中央の白い点*
+            (355, 405, 90, 375, 620, 165),  # 中央左側の白い点
+            (645, 405, 90, 665, 620, 165),  # 中央右側の白い点
+            (95, 405, 82, 105, 620, 165),  # 左部左側の白い点*
+            (295, 405, 82, 305, 620, 165),  # 左部右側の白い点
+            (720, 405, 82, 730, 620, 165),  # 右部左側の白い点
+            (920, 405, 82, 930, 620, 165),  # 右部右側の白い点*
+            (460, 460, 98, 475, 570, 165),  # 中央すぐ左の白い点*
+            (540, 460, 98, 555, 570, 165),  # 中央すぐ右の白い点*
+            (375, 405, 98, 400, 415, 165),  # 中央左側上部の白い点
+            (375, 600, 98, 400, 620, 165),  # 中央左側下部の白い点
+            (620, 405, 94, 645, 415, 165),  # 中央右側上部の白い点
+            (620, 610, 98, 645, 620, 165),  # 中央右側下部の白い点
+            (305, 405, 98, 315, 620, 165),  # 左部右端の白い点*
+            (710, 405, 98, 720, 620, 165),  # 右部左端の白い点*
+            (355, 595, 166, 395, 620, 180),  # 中央左側下部の白い点**
+            (125, 450, 166, 145, 575, 195),  # 左部白色の棒*
+            (880, 450, 166, 900, 575, 195),  # 右部白色の棒*
+            # (80, 395, 230, 990, 405, 240),  # 物体上部の境界
+            # (80, 620, 230, 990, 630, 240),  # 物体下部の境界
+            (495, 500, 200, 530, 525, 256),  # 中央の白点*
+        ]
         
     def black_boxes(self, image, boxes):
         new_boxes = np.empty((0, 4), int)
-        buff = 10
+        buff = 5
         height, width = image.shape[:2]
         for box in boxes:
             x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
@@ -80,8 +110,20 @@ class InspectorZaxis:
             surrounding_area = np.concatenate([surrounding_area, image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3)], axis=0)
             surrounding_area = np.concatenate([surrounding_area, image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3)], axis=0)
             surrounding_area = np.concatenate([surrounding_area, image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3)], axis=0)
-            anomaly = image[y1:y2, x1:x2]          
-            flag = np.mean(anomaly) - np.mean(surrounding_area) > -10
+            
+            # surrounding_area = image[max(0, y1-buff):min(height, y2+buff), max(0, x1-buff):min(width, x2+buff)]
+            anomaly = image[y1:y2, x1:x2]
+            flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > -5
+            
+            surrounding_area_averages = [
+                int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))),
+                int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))),
+                int(np.mean(image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3))),
+                int(np.mean(image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3))),
+            ]
+            flag2 = int(np.mean(anomaly)) - np.mean(sorted(surrounding_area_averages)[1:3]) > -5
+            flag = flag1 and flag2
+            
             if flag:
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
         return new_boxes
@@ -154,14 +196,14 @@ class InspectorZaxis:
                 return True
         return False
     
-    def remove_boxes(self, image, boxes, z_index):
+    def remove_boxes(self, image, boxes, z_index, is_positive_part=True):
         new_boxes = np.empty((0, 4), int)
         for box in boxes:
-            for x1, y1, z1, x2, y2, z2 in self.exclusion_area:
+            for x1, y1, z1, x2, y2, z2 in self.exclusion_area_positive if is_positive_part else self.exclusion_area_negative:
                 if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]):
                     break
             else:
-                if (box[2] - box[0]) * (box[3] - box[1]) > 40 * 40:
+                if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
                     continue
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
         new_boxes = self.black_boxes(image, new_boxes)
@@ -284,7 +326,7 @@ class InspectorZaxis:
                 pass
         print(f"detect count: {cnt}/{len(input_files)}")
         
-    def inspect(self, img, slice_number, save=False, saveID=None):
+    def inspect(self, img, slice_number, save=False, saveID=None, is_positive_part=True):
         height, width = img.shape[:2]
         detected_areas = np.empty((0, 4), int)
         
@@ -293,7 +335,7 @@ class InspectorZaxis:
             isinstance = outputs["instances"]
             boxes = isinstance.pred_boxes.tensor.cpu().numpy()
             detected_areas = np.concatenate([detected_areas, boxes], axis=0)
-            detected_areas = self.remove_boxes(img, detected_areas, slice_number)
+            detected_areas = self.remove_boxes(img, detected_areas, slice_number, is_positive_part)
             if save: self.save_image(img, outputs, saveID + f"_{i}" + ".png")
         
         detected_areas = self.merge_boxes(detected_areas)
