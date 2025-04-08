@@ -157,9 +157,9 @@ class InferenceMain:
                 if i in detected_box_indeces:
                     break
         # print(detected_boxes)
-        # if len(detected_boxes) != 0:
-        self.save_image(img, [box[2] for box in detected_boxes], z_filename)
-        json.dump(detected_boxes, open(os.path.join(self.output_dir, f"{fileID}_{z_index}.json"), 'w'))
+        if len(detected_boxes) != 0:
+            self.save_image(img, [box[2] for box in detected_boxes], z_filename)
+            json.dump(detected_boxes, open(os.path.join(self.output_dir, f"{fileID}_{z_index}.json"), 'w'))
         # return False
         return is_detected
 
@@ -200,7 +200,7 @@ class InferenceMain:
         # NGデータの場合のみ、不良がある層のみに制限
         data = json.load(open("complete_correct_data.json"))
         data_name = os.path.basename(os.path.dirname(input_path)).split('_')[0]
-        valid_input_files = [file for file in input_files if data_name not in data or file.endswith(f"{data[data_name]['pole']}_{data_name}_{data[data_name]['z'].zfill(4)}.png")]
+        valid_input_files = sorted([file for file in input_files if data_name not in data or file.endswith(f"{data[data_name]['pole']}_{data_name}_{data[data_name]['z'].zfill(4)}.png")])
         print(valid_input_files)
         
         detection_result = False
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     # oblique2(model_main.pth) < ?, (model_sub.pth) < 0.3, (model_small.pth) < ?
     weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.23), ("model_bead.pth", 0.9)],\
                     'oblique1': [("model_main.pth", 0.8)],\
-                    'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.2), ("model_small.pth", 0.1)]}
+                    'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.25), ("model_small.pth", 0.9)]}
     
     output_dir = "/workspace/data/results/NG_data_B"
     gpu_id = 4

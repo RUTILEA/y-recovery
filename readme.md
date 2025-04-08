@@ -56,11 +56,18 @@ mv OK_data10/results.json OK_data_detected/OK_data10.json
 mv OK_data11/results.json OK_data_detected/OK_data11.json
 mv OK_data12/results.json OK_data_detected/OK_data12.json
 mv OK_data13/results.json OK_data_detected/OK_data13.json
+mv OK_data14/results.json OK_data_detected/OK_data14.json
+mv OK_data15/results.json OK_data_detected/OK_data15.json
+mv OK_data16/results.json OK_data_detected/OK_data16.json
+mv OK_data17/results.json OK_data_detected/OK_data17.json
+mv OK_data18/results.json OK_data_detected/OK_data18.json
+mv OK_data19/results.json OK_data_detected/OK_data19.json
+mv OK_data20/results.json OK_data_detected/OK_data20.json
 zip -r OK_data_detected.zip OK_data_detected
 
 cd /home/user/shinzaki/y-recovery/data/results
-mkdir NG_dataA_detected NG_dataA_detected/detected NG_dataA_detected/Zaxis NG_dataA_detected/oblique1 NG_dataA_detected/oblique2 -p
-mkdir NG_dataB_detected NG_dataB_detected/detected NG_dataB_detected/Zaxis NG_dataB_detected/oblique1 NG_dataB_detected/oblique2 -p
+mkdir NG_dataA_detected/detected NG_dataA_detected/Zaxis NG_dataA_detected/oblique1 NG_dataA_detected/oblique2 -p
+mkdir NG_dataB_detected/detected NG_dataB_detected/Zaxis NG_dataB_detected/oblique1 NG_dataB_detected/oblique2 -p
 sudo chmod -R 777 .
 mv NG_data_A*/detected/*.txt NG_dataA_detected/detected/
 mv NG_data_B*/detected/*.txt NG_dataB_detected/detected/
