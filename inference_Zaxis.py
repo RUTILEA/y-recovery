@@ -160,6 +160,8 @@ class InspectorZaxis:
                 if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]):
                     break
             else:
+                if (box[2] - box[0]) * (box[3] - box[1]) > 40 * 40:
+                    continue
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
         new_boxes = self.black_boxes(image, new_boxes)
         return new_boxes
