@@ -16,7 +16,9 @@ name_results = {os.path.basename(name).split('_')[0]: False for name in json_res
 for name, result in json_results.items():
     name_results[os.path.basename(name).split('_')[0]] = name_results[os.path.basename(name).split('_')[0]] or result
 
-OK_NG_results = [result for name, result in name_results.items()]
-print(f"{OK_NG_results.count(False)}/{len(OK_NG_results)}")
+OK_NG_results1 = [result for name, result in json_results.items()]
+OK_NG_results2 = [result for name, result in name_results.items()]
+print(f"{OK_NG_results1.count(False)}/{len(OK_NG_results1)}")
+print(f"{OK_NG_results2.count(False)}/{len(OK_NG_results2)}")
 
 

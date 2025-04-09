@@ -263,10 +263,10 @@ if __name__ == '__main__':
     weights_dir = "/workspace/weights/"
     # Zaxis(model_main.pth) < 0.64, (model_thin.pth) < 0.69, (model_bead.pth) < 0.13
     # oblique1(model_main.pth) < ?
-    # oblique2(model_main.pth) < 0.12, (model_sub.pth) < 0.33, (model_small.pth) < 1
+    # oblique2(model_main.pth) < 0.12, (model_sub.pth) < 0.33, (model_small.pth) < 0.998
     weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.68), ("model_bead.pth", 0.12)],\
                     'oblique1': [("model_main.pth", 1)],\
-                    'oblique2': [("model_main.pth", 0.11), ("model_sub.pth", 0.32), ("model_small.pth", 0.99)]}
+                    'oblique2': [("model_main.pth", 0.11), ("model_sub.pth", 0.32), ("model_small.pth", 0.997)]}
     
     output_dir = "/workspace/data/results/NG_data_B"
     gpu_id = 4
