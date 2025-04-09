@@ -50,8 +50,9 @@ class InferenceMain:
             center_x, center_y = (xl + xr) // 2, (yl + yr) // 2
             x_oblique = 3101 - (center_y)*(3101/1024)
             y_oblique = 256 - z_index
-            index_oblique = center_x
-            P.append((index_oblique, x_oblique, y_oblique))
+            index_oblique_min = int(xl)
+            index_oblique_max = int(xr) + 1
+            P.append((index_oblique_min, index_oblique_max, x_oblique, y_oblique))
         return P
     
     def convert_Z_to_oblique2(self, boxes, z_index):
@@ -61,8 +62,9 @@ class InferenceMain:
             center_x, center_y = (xl + xr) // 2, (yl + yr) // 2
             x_oblique = center_x * (3101/1024)
             y_oblique = 256 - z_index
-            index_oblique = center_y
-            P.append((index_oblique, x_oblique, y_oblique))
+            index_oblique_min = int(yl)
+            index_oblique_max = int(yr) + 1
+            P.append((index_oblique_min, index_oblique_max, x_oblique, y_oblique))
         return P
     
     def merge_boxes(self, boxes):
@@ -98,19 +100,25 @@ class InferenceMain:
         detected_boxes = []
         detected_box_indeces = set()
         ob2_boxes = self.convert_Z_to_oblique2(boxes_z, z_index)
+        ob2_result = {}
         for i, p in enumerate(ob2_boxes):
             if i in detected_box_indeces:
                 continue
-            idx = p[0]; x = p[1]; y = p[2]
-            for idx in range(p[0]-2, p[0]+3):
+            # idx = p[0]; x = p[1]; y = p[2]
+            idx_min, idx_max, x, y = p
+            for idx in range(idx_min, idx_max+1):
                 filename = 'oblique2_' + fileID + f"_{idx:04}.png"
                 if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
                     # print(os.path.join(self.ob2_inspector.input_dir, filename))
                     continue
                 else:
                     pass
-                img_ob2 = self.ob2_inspector.read_image(filename)
-                boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=False, saveID=f"{fileID}_{idx}_{z_index}")
+                if filename not in ob2_result:
+                    img_ob2 = self.ob2_inspector.read_image(filename)
+                    boxes_ob2 = self.ob2_inspector.inspect(img_ob2, save=False, saveID=f"{fileID}_{idx}_{z_index}")
+                    ob2_result[filename] = boxes_ob2
+                else:
+                    boxes_ob2 = ob2_result[filename]
                 for boxes in boxes_ob2:
                     boxes = self.merge_boxes(boxes)
                     for box in boxes:
@@ -130,11 +138,13 @@ class InferenceMain:
                     break
                         
         ob1_boxes = self.convert_Z_to_oblique1(boxes_z, z_index)
+        ob1_result = {}
         for i, p in enumerate(ob1_boxes):
             if i in detected_box_indeces:
                 continue
-            idx = p[0]; x = p[1]; y = p[2]
-            for idx in range(p[0]-2, p[0]+3):
+            # idx = p[0]; x = p[1]; y = p[2]
+            idx_min, idx_max, x, y = p
+            for idx in range(idx_min, idx_max+1):
                 filename = 'oblique1_' + fileID + f"_{idx:04}.png"
                 # print(filename)
                 if not os.path.exists(os.path.join(self.ob1_inspector.input_dir, filename)):
@@ -143,8 +153,12 @@ class InferenceMain:
                 else:
                     # print(f"found: {filename}")
                     pass
-                img_ob1 = self.ob1_inspector.read_image(filename)
-                boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}_{z_index}")
+                if filename not in ob1_result:
+                    img_ob1 = self.ob1_inspector.read_image(filename)
+                    boxes_ob1 = self.ob1_inspector.inspect(img_ob1, save=True, saveID=f"{fileID}_{idx}_{z_index}")
+                    ob1_result[filename] = boxes_ob1
+                else:
+                    boxes_ob1 = ob1_result[filename]
                 for box in boxes_ob1:
                     center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
                     if abs(center_x - x) < 20 and abs(center_y - y) < 20:
@@ -246,12 +260,12 @@ if __name__ == '__main__':
     start = time.time()
     input_dir = "/workspace/data/NG_data_B"
     weights_dir = "/workspace/weights/"
-    # Zaxis(model_main.pth) < 0.65, (model_thin.pth) < 0.25, (model_bead.pth) < 0.95
+    # Zaxis(model_main.pth) < 0.64, (model_thin.pth) < 0.69, (model_bead.pth) < 0.13
     # oblique1(model_main.pth) < ?
-    # oblique2(model_main.pth) < ?, (model_sub.pth) < 0.3, (model_small.pth) < ?
-    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.23), ("model_bead.pth", 0.9)],\
+    # oblique2(model_main.pth) < 0.15, (model_sub.pth) < 0.3, (model_small.pth) < ?
+    weights_list = {'Zaxis': [("model_main.pth", 0.63), ("model_thin.pth", 0.68), ("model_bead.pth", 0.12)],\
                     'oblique1': [("model_main.pth", 0.8)],\
-                    'oblique2': [("model_main.pth", 0.1), ("model_sub.pth", 0.25), ("model_small.pth", 0.9)]}
+                    'oblique2': [("model_main.pth", 0.5), ("model_sub.pth", 0.25), ("model_small.pth", 0.9)]}
     
     output_dir = "/workspace/data/results/NG_data_B"
     gpu_id = 4

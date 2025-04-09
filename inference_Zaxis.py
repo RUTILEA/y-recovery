@@ -46,6 +46,7 @@ class InspectorZaxis:
         self.exclusion_area_positive = [
             (0, 300, 0, 80, 700, 256),  # 左端
             (945, 300, 0, 1024, 700, 256),  # 右端
+            (490, 490, 0, 535, 535, 40),  # 中央のムラ
             (20, 600, 0, 40, 620, 40),  # 四隅の出っ張り
             (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
             (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
@@ -102,6 +103,7 @@ class InspectorZaxis:
         self.exclusion_area_negative = [
             # (0, 300, 0, 80, 700, 256),  # 左端
             # (945, 300, 0, 1024, 700, 256),  # 右端
+            (490, 490, 0, 535, 535, 40),  # 中央のムラ
             (20, 600, 0, 40, 620, 40),  # 四隅の出っ張り
             (20, 410, 0, 40, 430, 40),  # 四隅の出っ張り
             (990, 410, 0, 1010, 430, 40),  # 四隅の出っ張り
@@ -121,6 +123,22 @@ class InspectorZaxis:
             (620, 610, 98, 645, 620, 165),  # 中央右側下部の白い点
             (305, 405, 98, 315, 620, 165),  # 左部右端の白い点*
             (710, 405, 98, 720, 620, 165),  # 右部左端の白い点*
+            (385, 415, 110, 415, 425, 140),  # ギザギザ (1,1))/(4,4)
+            (385, 470, 110, 415, 480, 140),  # ギザギザ (2,1))/(4,4)
+            (385, 520, 110, 415, 530, 140),  # ギザギザ (3,1))/(4,4)
+            (385, 575, 110, 415, 585, 140),  # ギザギザ (4,1))/(4,4)
+            (445, 415, 110, 475, 425, 140),  # ギザギザ (1,2))/(4,4)
+            (445, 470, 110, 475, 480, 140),  # ギザギザ (2,2))/(4,4)
+            (445, 520, 110, 475, 530, 140),  # ギザギザ (3,2))/(4,4)
+            (445, 575, 110, 475, 585, 140),  # ギザギザ (4,2))/(4,4)
+            (545, 440, 110, 575, 450, 140),  # ギザギザ (1,3))/(4,4)
+            (545, 495, 110, 575, 505, 140),  # ギザギザ (2,3))/(4,4)
+            (545, 545, 110, 575, 555, 140),  # ギザギザ (3,3))/(4,4)
+            (545, 595, 110, 575, 605, 140),  # ギザギザ (4,3))/(4,4)
+            (605, 440, 110, 635, 450, 140),  # ギザギザ (1,4))/(4,4)
+            (605, 495, 110, 635, 505, 140),  # ギザギザ (2,4))/(4,4)
+            (605, 545, 110, 635, 555, 140),  # ギザギザ (3,4))/(4,4)
+            (605, 595, 110, 635, 605, 140),  # ギザギザ (4,4))/(4,4)
             (355, 595, 166, 395, 620, 180),  # 中央左側下部の白い点**
             (110, 400, 157, 340, 440, 209),  # 左部ビード部上
             (110, 580, 157, 340, 620, 209),  # 左部ビード部下
@@ -140,27 +158,43 @@ class InspectorZaxis:
     def black_boxes(self, image, boxes):
         new_boxes = np.empty((0, 4), int)
         buff = 5
+        min_brightness = 80
+        min_brightness_difference = -5
         height, width = image.shape[:2]
         for box in boxes:
             x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            if x2 <= x1 or y2 <= y1:
+                continue
+            
+            # 周囲のエリアよりも明るいかどうかを平均値により判断する
             surrounding_area = image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3)
             surrounding_area = np.concatenate([surrounding_area, image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3)], axis=0)
             surrounding_area = np.concatenate([surrounding_area, image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3)], axis=0)
             surrounding_area = np.concatenate([surrounding_area, image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3)], axis=0)
-            
-            # surrounding_area = image[max(0, y1-buff):min(height, y2+buff), max(0, x1-buff):min(width, x2+buff)]
             anomaly = image[y1:y2, x1:x2]
-            flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > -5
+            if surrounding_area.shape[0] == 0:
+                flag1 = True
+            else:
+                flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > min_brightness_difference
             
-            # TODO: からの配列にならない処理を追加する
-            surrounding_area_averages = [
-                int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))),
-                int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))),
-                int(np.mean(image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3))),
-                int(np.mean(image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3))),
-            ]
-            flag2 = int(np.mean(anomaly)) - np.mean(sorted(surrounding_area_averages)[1:3]) > -5
-            flag = flag1 and flag2
+            # 周囲のエリアよりも明るいかどうかを中央値により判断する（ノイズの影響を受けにくい）
+            surrounding_area_averages = []
+            if image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))))
+            if image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))))
+            if image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3))))
+            if image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3))))
+            if len(surrounding_area_averages) == 0:
+                flag2 = True
+            else:
+                flag2 = int(np.mean(anomaly)) - np.median(surrounding_area_averages) > min_brightness_difference
+            
+            # 最低輝度を上回っているかどうかを判断する
+            flag3 = int(np.max(anomaly)) > min_brightness
+            flag = flag1 and flag2 and flag3
             
             if flag:
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)

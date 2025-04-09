@@ -5,8 +5,8 @@ import glob
 
 correct_data = json.load(open("complete_correct_data.json"))
 
-# text_paths = glob.glob(f'data/results/NG_data_*/Zaxis/*.txt')
-text_paths = glob.glob(f'data/results/OK_data*/Zaxis/*.txt')
+text_paths = glob.glob(f'data/results/NG_data_*/Zaxis/*.txt')
+# text_paths = glob.glob(f'data/results/OK_data*/Zaxis/*.txt')
 
 # print(text_paths, len(text_paths))
 text_data_list = [json.load(open(text_path)) for text_path in text_paths]
