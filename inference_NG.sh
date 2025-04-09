@@ -4,25 +4,25 @@ docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A1 /w
 PID1=$!
 docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A2 /workspace/data/results/NG_data_A2 0 &
 PID2=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A3 /workspace/data/results/NG_data_A3 0 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A3 /workspace/data/results/NG_data_A3 1 &
 PID3=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A4 /workspace/data/results/NG_data_A4 3 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A4 /workspace/data/results/NG_data_A4 1 &
 PID4=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A5 /workspace/data/results/NG_data_A5 3 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A5 /workspace/data/results/NG_data_A5 2 &
 PID5=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A6 /workspace/data/results/NG_data_A6 3 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_A6 /workspace/data/results/NG_data_A6 2 &
 PID6=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B1 /workspace/data/results/NG_data_B1 4 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B1 /workspace/data/results/NG_data_B1 3 &
 PID7=$!
 docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B2 /workspace/data/results/NG_data_B2 4 &
 PID8=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B3 /workspace/data/results/NG_data_B3 4 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B3 /workspace/data/results/NG_data_B3 5 &
 PID9=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B4 /workspace/data/results/NG_data_B4 5 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B4 /workspace/data/results/NG_data_B4 6 &
 PID10=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B5 /workspace/data/results/NG_data_B5 5 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B5 /workspace/data/results/NG_data_B5 7 &
 PID11=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B6 /workspace/data/results/NG_data_B6 5 &
+docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B6 /workspace/data/results/NG_data_B6 7 &
 PID12=$!
 
 # Wait for all processes to complete
