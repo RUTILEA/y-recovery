@@ -45,7 +45,7 @@ class InspectorOblique2:
         new_boxes = np.empty((0, 4), int)
         buff = 5
         min_brightness = 80
-        min_brightness_difference = -10
+        min_brightness_difference = -15
         height, width = image.shape[:2]
         for box in boxes:
             x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)

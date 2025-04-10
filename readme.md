@@ -66,33 +66,34 @@ mv OK_data20/results.json OK_data_detected/OK_data20.json
 zip -r OK_data_detected.zip OK_data_detected
 
 cd /home/user/shinzaki/y-recovery/data/results
-mkdir NG_dataA_detected/detected NG_dataA_detected/Zaxis NG_dataA_detected/oblique1 NG_dataA_detected/oblique2 -p
-mkdir NG_dataB_detected/detected NG_dataB_detected/Zaxis NG_dataB_detected/oblique1 NG_dataB_detected/oblique2 -p
+mkdir NG_results/detected_Zaxis NG_results/detected_oblique2 NG_results/Zaxis NG_results/oblique1 NG_results/oblique2 NG_results/json -p
 sudo chmod -R 777 .
-mv NG_data_A*/detected/*.txt NG_dataA_detected/detected/
-mv NG_data_B*/detected/*.txt NG_dataB_detected/detected/
-mv NG_data_A*/Zaxis/*.txt NG_dataA_detected/Zaxis/
-mv NG_data_B*/Zaxis/*.txt NG_dataB_detected/Zaxis/
-mv NG_data_A*/oblique1/*.txt NG_dataA_detected/oblique1/
-mv NG_data_B*/oblique1/*.txt NG_dataB_detected/oblique1/
-mv NG_data_A*/oblique2/*.txt NG_dataA_detected/oblique2/
-mv NG_data_B*/oblique2/*.txt NG_dataB_detected/oblique2/
-mv NG_data_A1/results.json NG_dataA_detected/NG_data_A1.json
-mv NG_data_A2/results.json NG_dataA_detected/NG_data_A2.json
-mv NG_data_A3/results.json NG_dataA_detected/NG_data_A3.json
-mv NG_data_A4/results.json NG_dataA_detected/NG_data_A4.json
-mv NG_data_A5/results.json NG_dataA_detected/NG_data_A5.json
-mv NG_data_A6/results.json NG_dataA_detected/NG_data_A6.json
-mv NG_data_B1/results.json NG_dataB_detected/NG_data_B1.json
-mv NG_data_B2/results.json NG_dataB_detected/NG_data_B2.json
-mv NG_data_B3/results.json NG_dataB_detected/NG_data_B3.json
-mv NG_data_B4/results.json NG_dataB_detected/NG_data_B4.json
-mv NG_data_B5/results.json NG_dataB_detected/NG_data_B5.json
-mv NG_data_B6/results.json NG_dataB_detected/NG_data_B6.json
-mv NG_data_A*/*.json NG_dataA_detected/
-mv NG_data_B*/*.json NG_dataB_detected/
-zip -r NG_dataA_detected.zip NG_dataA_detected
-zip -r NG_dataB_detected.zip NG_dataB_detected
+mv NG_data_A*/detected/*.png NG_results/detected_Zaxis/
+mv NG_data_B*/detected/*.png NG_results/detected_Zaxis/
+mv NG_data_A*/detected_ob2/*.png NG_results/detected_oblique2/
+mv NG_data_B*/detected_ob2/*.png NG_results/detected_oblique2/
+mv NG_data_A*/Zaxis/*.png NG_results/Zaxis/
+mv NG_data_B*/Zaxis/*.png NG_results/Zaxis/
+mv NG_data_A*/oblique1/*.png NG_results/oblique1/
+mv NG_data_B*/oblique1/*.png NG_results/oblique1/
+mv NG_data_A*/oblique2/*.png NG_results/oblique2/
+mv NG_data_B*/oblique2/*.png NG_results/oblique2/
+mv NG_data_A1/results.json NG_results/NG_data_A1.json
+mv NG_data_A2/results.json NG_results/NG_data_A2.json
+mv NG_data_A3/results.json NG_results/NG_data_A3.json
+mv NG_data_A4/results.json NG_results/NG_data_A4.json
+mv NG_data_A5/results.json NG_results/NG_data_A5.json
+mv NG_data_A6/results.json NG_results/NG_data_A6.json
+mv NG_data_B1/results.json NG_results/NG_data_B1.json
+mv NG_data_B2/results.json NG_results/NG_data_B2.json
+mv NG_data_B3/results.json NG_results/NG_data_B3.json
+mv NG_data_B4/results.json NG_results/NG_data_B4.json
+mv NG_data_B5/results.json NG_results/NG_data_B5.json
+mv NG_data_B6/results.json NG_results/NG_data_B6.json
+mv NG_data_A*/*.json NG_results/
+mv NG_data_B*/*.json NG_results/
+zip -r NG_results.zip NG_results
+zip -r NG_results.zip NG_results
 
 sh inference_OK.sh
 docker exec yuasa-server python3 calc_accuray_z.py
