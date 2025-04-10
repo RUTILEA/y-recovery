@@ -297,7 +297,7 @@ class InspectorZaxis:
                     # 除外領域に重なっている場合は除外
                     should_exclude = True
                     break
-            if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
+            if (box[2] - box[0]) * (box[3] - box[1]) > 25 * 25:
                 # 面積が大きすぎる場合は除外
                 should_exclude = True
                 break

@@ -21,4 +21,4 @@ OK_NG_results2 = [result for name, result in name_results.items()]
 print(f"{OK_NG_results1.count(False)}/{len(OK_NG_results1)}")
 print(f"{OK_NG_results2.count(False)}/{len(OK_NG_results2)}")
 
-
+print(len(glob.glob(f'data/results/OK_data*/detected/*.png')))

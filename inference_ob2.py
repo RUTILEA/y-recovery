@@ -45,7 +45,7 @@ class InspectorOblique2:
         new_boxes = np.empty((0, 4), int)
         buff = 5
         min_brightness = 80
-        min_brightness_difference = -15
+        min_brightness_difference = -10
         height, width = image.shape[:2]
         for box in boxes:
             x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
@@ -208,7 +208,7 @@ class InspectorOblique2:
                 # 大きいboxを除外
                 new_boxes = np.empty((0, 4), int)
                 for box in boxes:
-                    if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
+                    if (box[2] - box[0]) * (box[3] - box[1]) > 25 * 25:
                         continue
                     new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
                 # 黒いboxを除外

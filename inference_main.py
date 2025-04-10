@@ -130,7 +130,7 @@ class InferenceMain:
                         if self.check_overlap(box, [x_min-5, y-5, x_max+5, y+5]):
                             import cv2
                             os.makedirs(os.path.join(self.output_dir, "detected_ob2"), exist_ok=True)
-                            image_path = os.path.join(self.output_dir, "detected_ob2", f"{os.path.splitext(filename)[0]}_{idx:04}.png")
+                            image_path = os.path.join(self.output_dir, "detected_ob2", f"{os.path.splitext(filename)[0]}_{z_index:04}.png")
                             image_with_rectangle = img_ob2.copy()
                             cv2.rectangle(image_with_rectangle, (int(x_min-5), int(y-5)), (int(x_max+5), int(y+5)), (0, 255, 0), 1)  # ob2 algo result
                             cv2.rectangle(image_with_rectangle, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 1)  # z algo result
@@ -241,7 +241,7 @@ class InferenceMain:
             # print(f"filename: {filename.split('/')[-1]}, detected: {is_detected}")
             if is_detected:
                 detection_result = True
-                return True
+                # return True
         return detection_result
         # return False
 
