@@ -61,10 +61,12 @@ class InferenceMain:
             xl, yl, xr, yr = map(int, box)
             center_x, center_y = (xl + xr) // 2, (yl + yr) // 2
             x_oblique = center_x * (3101/1024)
+            x_oblique_min = xl * (3101/1024)
+            x_oblique_max = xr * (3101/1024)
             y_oblique = 256 - z_index
             index_oblique_min = int(yl)
             index_oblique_max = int(yr) + 1
-            P.append((index_oblique_min, index_oblique_max, x_oblique, y_oblique))
+            P.append((index_oblique_min, index_oblique_max, x_oblique, y_oblique, x_oblique_min, x_oblique_max))
         return P
     
     def merge_boxes(self, boxes):
@@ -105,7 +107,7 @@ class InferenceMain:
             if i in detected_box_indeces:
                 continue
             # idx = p[0]; x = p[1]; y = p[2]
-            idx_min, idx_max, x, y = p
+            idx_min, idx_max, x, y, x_min, x_max = p
             for idx in range(idx_min, idx_max+1):
                 filename = 'oblique2_' + fileID + f"_{idx:04}.png"
                 if not os.path.exists(os.path.join(self.ob2_inspector.input_dir, filename)):
@@ -123,8 +125,19 @@ class InferenceMain:
                     boxes = self.merge_boxes(boxes)
                     for box in boxes:
                         center_x, center_y = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-                        if abs(center_x - x) < 20 and abs(center_y - y) < 20:
                         # if True:
+                        # データを保存する
+                        if self.check_overlap(box, [x_min-5, y-5, x_max+5, y+5]):
+                            import cv2
+                            os.makedirs(os.path.join(self.output_dir, "detected_ob2"), exist_ok=True)
+                            image_path = os.path.join(self.output_dir, "detected_ob2", f"{os.path.splitext(filename)[0]}_{idx:04}.png")
+                            image_with_rectangle = img_ob2.copy()
+                            cv2.rectangle(image_with_rectangle, (int(x_min-5), int(y-5)), (int(x_max+5), int(y+5)), (0, 255, 0), 1)  # ob2 algo result
+                            cv2.rectangle(image_with_rectangle, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 1)  # z algo result
+                            cv2.imwrite(image_path, image_with_rectangle)
+                        
+                        # if abs(center_x - x) < 20 and abs(center_y - y) < 20:
+                        # if self.check_overlap(box, [x_min-5, y-5, x_max+5, y+5]):
                             if i in detected_box_indeces:
                                 continue
                             # print(f"detected! ob2_index:{idx}, z_x:{x}, z_y:{y}")

@@ -24,11 +24,11 @@ docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B5 /w
 PID11=$!
 docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_B6 /workspace/data/results/NG_data_B6 7 &
 PID12=$!
-docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_extra /workspace/data/results/NG_data_extra 0 &
-PID13=$!
+# docker exec yuasa-server python3 inference_main.py /workspace/data/NG_data_extra /workspace/data/results/NG_data_extra 0 &
+# PID13=$!
 
 # Wait for all processes to complete
 echo "Running all Python scripts..."
-wait $PID1 $PID2 $PID3 $PID4 $PID5 $PID6 $PID7 $PID8 $PID9 $PID10 $PID11 $PID12 $PID13
+wait $PID1 $PID2 $PID3 $PID4 $PID5 $PID6 $PID7 $PID8 $PID9 $PID10 $PID11 $PID12
 echo "All Python scripts have completed."
 exit 0

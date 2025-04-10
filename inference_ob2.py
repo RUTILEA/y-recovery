@@ -205,8 +205,15 @@ class InspectorOblique2:
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
                 boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
-                boxes = self.black_boxes(img, boxes)
-                detected_areas.append(boxes)
+                # 大きいboxを除外
+                new_boxes = np.empty((0, 4), int)
+                for box in boxes:
+                    if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
+                        continue
+                    new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+                # 黒いboxを除外
+                new_boxes = self.black_boxes(img, new_boxes)
+                detected_areas.append(new_boxes)
                 if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.png')
         if len(detected_areas) != 0:
             self.save_image2(img, detected_areas, saveID+'.png')

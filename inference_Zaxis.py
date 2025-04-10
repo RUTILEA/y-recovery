@@ -291,34 +291,37 @@ class InspectorZaxis:
     def remove_boxes(self, image, boxes, z_index, is_positive_part=True):
         new_boxes = np.empty((0, 4), int)
         for box in boxes:
+            should_exclude = False
             for x1, y1, z1, x2, y2, z2 in self.exclusion_area_positive if is_positive_part else self.exclusion_area_negative:
                 if z1 <= z_index <= z2 and self.check_overlap(box, [x1, y1, x2, y2]):
                     # 除外領域に重なっている場合は除外
+                    should_exclude = True
                     break
-                elif (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
-                    # 面積が大きすぎる場合は除外
-                    break
-                elif (is_positive_part and z_index >= 240) or (not is_positive_part and z_index >= 245):
-                    # z_indexが大きい場合にビード部の縁が消えつつある時に小さな白丸が現れ、過検出されるため削除
-                    is_overdetection = False
-                    areas = [
-                        [105, 455, 115, 570],  # 左ビード左
-                        [105, 485, 115, 540],  # 左ビード左
-                        [305, 455, 315, 570],  # 左ビード右
-                        [305, 485, 315, 540],  # 左ビード右
-                        [710, 455, 720, 570],  # 右ビード左
-                        [710, 485, 720, 540],  # 右ビード左
-                        [912, 455, 922, 570],  # 右ビード右
-                        [912, 485, 922, 540],  # 右ビード右
-                    ]
-                    for area in areas:
-                        if self.check_overlap(box, area) and np.mean(image[area[1]:area[3], area[0]:area[2]].mean()) < 160:  # 170 <= x < 180
-                            is_overdetection = True
-                            break
-                    if is_overdetection:
+            if (box[2] - box[0]) * (box[3] - box[1]) > 30 * 30:
+                # 面積が大きすぎる場合は除外
+                should_exclude = True
+                break
+            elif (is_positive_part and z_index >= 240) or (not is_positive_part and z_index >= 245):
+                # z_indexが大きい場合にビード部の縁が消えつつある時に小さな白丸が現れ、過検出されるため削除
+                is_overdetection = False
+                areas = [
+                    [105, 455, 115, 570],  # 左ビード左
+                    [105, 485, 115, 540],  # 左ビード左
+                    [305, 455, 315, 570],  # 左ビード右
+                    [305, 485, 315, 540],  # 左ビード右
+                    [710, 455, 720, 570],  # 右ビード左
+                    [710, 485, 720, 540],  # 右ビード左
+                    [912, 455, 922, 570],  # 右ビード右
+                    [912, 485, 922, 540],  # 右ビード右
+                ]
+                for area in areas:
+                    if self.check_overlap(box, area) and np.mean(image[area[1]:area[3], area[0]:area[2]].mean()) < 160:  # 170 <= x < 180
+                        should_exclude = True
                         break
-            else:
+            
+            if not should_exclude:
                 new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+                
         new_boxes = self.black_boxes(image, new_boxes)
         return new_boxes
     
