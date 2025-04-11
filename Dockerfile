@@ -3,7 +3,8 @@ FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 # 非対話モードを設定し、タイムゾーンを指定
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
+# ENV TZ=Etc/UTC
+ENV TZ=Asia/Tokyo
 
 # 必要なツールとライブラリをインストール
 RUN apt-get update && apt-get install -y \
@@ -34,7 +35,7 @@ RUN pip3 install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url 
 RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 
 # Pillowを指定バージョンでインストール
-RUN pip3 install pillow==9.1.0
+RUN pip3 install pillow==9.1.0 loguru==0.7.2 supervision
 
 # MatplotlibとNumpyのバージョンを指定してインストール
 RUN pip3 install matplotlib numpy --upgrade
