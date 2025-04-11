@@ -12,14 +12,14 @@ from PIL import Image
 import pandas as pd
 
 class InspectorOblique2:
-    def __init__(self, input_dir, weight_dir, weight_list, output_dir):
+    def __init__(self, input_dir, weight_dir, weight_list, output_dir, gpu_id):
         self.input_dir = input_dir
         self.weight_dir = weight_dir
         self.weight_list = weight_list
         self.output_dir = output_dir
         self.crop_image_size = {'width': 1100, 'height': 256}
         self.buffer = 150
-        self._set_predictor(weight_list)
+        self._set_predictor(weight_list, gpu_id)
         
     def _setup_cfg(self, gpu_id, weight_path, threshold):
         cfg = get_cfg()
@@ -27,19 +27,65 @@ class InspectorOblique2:
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
         cfg.MODEL.WEIGHTS = weight_path
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+        cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.2
         cfg.DATASETS.TEST = ("val2", "my_dataset_val3",)
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg
         
-    def _set_predictor(self, weight_list):
+    def _set_predictor(self, weight_list, gpu_id):
         self.predictor = []
         for weight, thresh in weight_list:
             weight_path = os.path.join(self.weight_dir, weight)
-            cfg = self._setup_cfg(0, weight_path, thresh)
+            cfg = self._setup_cfg(gpu_id, weight_path, thresh)
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
-        
+
+    def black_boxes(self, image, boxes):
+        new_boxes = np.empty((0, 4), int)
+        buff = 5
+        min_brightness = 80
+        min_brightness_difference = -15
+        height, width = image.shape[:2]
+        for box in boxes:
+            x1, y1, x2, y2 = box; x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            if x2 <= x1 or y2 <= y1:
+                continue
+            
+            # 周囲のエリアよりも明るいかどうかを平均値により判断する
+            surrounding_area = image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3)
+            surrounding_area = np.concatenate([surrounding_area, image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3)], axis=0)
+            surrounding_area = np.concatenate([surrounding_area, image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3)], axis=0)
+            anomaly = image[y1:y2, x1:x2]
+            if surrounding_area.shape[0] == 0:
+                flag1 = True
+            else:
+                flag1 = int(np.mean(anomaly)) - int(np.mean(surrounding_area)) > min_brightness_difference
+            
+            # 周囲のエリアよりも明るいかどうかを中央値により判断する（ノイズの影響を受けにくい）
+            surrounding_area_averages = []
+            if image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[max(0, y1-buff):y1, x1:x2].reshape(-1, 3))))
+            if image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y2:min(height, y2+buff), x1:x2].reshape(-1, 3))))
+            if image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y1:y2, max(0, x1-buff):x1].reshape(-1, 3))))
+            if image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3).shape[0] != 0:
+                surrounding_area_averages.append(int(np.mean(image[y1:y2, x2:min(width, x2+buff)].reshape(-1, 3))))
+            if len(surrounding_area_averages) == 0:
+                flag2 = True
+            else:
+                flag2 = int(np.mean(anomaly)) - np.median(surrounding_area_averages) > min_brightness_difference
+            
+            # 最低輝度を上回っているかどうかを判断する
+            flag3 = int(np.max(anomaly)) > min_brightness
+            flag = flag1 and flag2 and flag3
+            
+            if flag:
+                new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+        return new_boxes
+
     def read_image(self, filename):
         image_path = os.path.join(self.input_dir, filename) 
         img = cv2.imread(image_path)
@@ -141,6 +187,14 @@ class InspectorOblique2:
                 print(f"not detected: {filename}")
                 pass
         print(f"detect count: {cnt}/{len(input_files)}")
+
+    def save_image2(self, img, detected_areas, filename):
+        img_copy = img.copy()
+        for box in [box for areas in detected_areas for box in areas]:
+            x1, y1, x2, y2 = map(int, box)
+            cv2.rectangle(img_copy, (x1, y1), (x2, y2), (0, 255, 0), 1)  # 緑色の矩形を描画
+        output_path = os.path.join(self.output_dir, filename)
+        cv2.imwrite(output_path, img_copy)
         
     def inspect(self, img, save=False, saveID=None):
         detected_areas = []
@@ -151,8 +205,19 @@ class InspectorOblique2:
                 isinstance = outputs["instances"]
                 boxes = isinstance.pred_boxes.tensor.cpu().numpy()
                 boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1], i)
-                detected_areas.append(boxes)
+                # 大きいboxを除外
+                new_boxes = np.empty((0, 4), int)
+                for box in boxes:
+                    if (box[2] - box[0]) * (box[3] - box[1]) > 25 * 25:
+                        continue
+                    new_boxes = np.concatenate([new_boxes, box.reshape(1, 4)], axis=0)
+                # 黒いboxを除外
+                new_boxes = self.black_boxes(img, new_boxes)
+                detected_areas.append(new_boxes)
                 if save: self.save_image(crop_img, outputs, saveID+f'_{3*k+i}'+'.png')
+        if len(detected_areas) != 0:
+            self.save_image2(img, detected_areas, saveID+'.png')
+            
         return detected_areas
     
     def inspect_one_cell(self):

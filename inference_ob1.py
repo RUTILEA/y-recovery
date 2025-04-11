@@ -12,13 +12,13 @@ from PIL import Image
 import pandas as pd
 
 class InspectorOblique1:
-    def __init__(self, input_dir, weight_dir, weight_list, output_dir):
+    def __init__(self, input_dir, weight_dir, weight_list, output_dir, gpu_id):
         self.input_dir = input_dir
         self.weight_dir = weight_dir
         self.weight_list = weight_list
         self.output_dir = output_dir
         self.crop_size = {'width': 740, 'height': 256}
-        self._set_predictor(weight_list)
+        self._set_predictor(weight_list, gpu_id)
         
     def _setup_cfg(self, gpu_id, weight_path, threshold=0.3):
         cfg = get_cfg()
@@ -26,15 +26,16 @@ class InspectorOblique1:
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
         cfg.MODEL.WEIGHTS = weight_path
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+        cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.2
         cfg.DATASETS.TEST = ("val2", "my_dataset_val3",)
         cfg.MODEL.DEVICE = f'cuda:{gpu_id}'
         return cfg
         
-    def _set_predictor(self, weight_list):
+    def _set_predictor(self, weight_list, gpu_id):
         self.predictor = []
         for weight, thresh in weight_list:
             weight_path = os.path.join(self.weight_dir, weight)
-            cfg = self._setup_cfg(0, weight_path, thresh)
+            cfg = self._setup_cfg(gpu_id, weight_path, thresh)
             p = DefaultPredictor(cfg)
             self.predictor.append(p)
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
@@ -143,17 +144,19 @@ class InspectorOblique1:
         
         ### ここから修正
         for box in boxes:
-            box[0] += center_x - 3*(self.crop_image_size['width']//2) + self.buffer
-            box[2] += center_x - 3*(self.crop_image_size['width']//2) + self.buffer
+            box[0] += center_x - 3*(self.crop_size['width']//2)
+            box[2] += center_x - 3*(self.crop_size['width']//2)
             new_boxes.append(box)
         return new_boxes
         
-    def inspect(self, img):
+    def inspect(self, img, save=False, saveID=None):
         crop_img = self.crop_images(img) 
         outputs = self.predictor[0](crop_img)
         isinstance = outputs["instances"]
         boxes = isinstance.pred_boxes.tensor.cpu().numpy()
         boxes = self.convert_coordinate(boxes, img.shape[0], img.shape[1])
+        if len(boxes) != 0 and save:
+            self.save_image(crop_img, outputs, saveID+'.png')
         return boxes
         
 

@@ -32,3 +32,75 @@ docker compose up --build -d
 ```
 python3 inference_main.py
 ```
+
+docker exec yuasa-server python3 inference_main.py /workspace/data/OK_data /workspace/data/results/OK_data 0
+
+
+cd /home/user/shinzaki/y-recovery/data/results
+mkdir OK_data_detected/detected OK_data_detected/Zaxis OK_data_detected/oblique1 OK_data_detected/oblique2 -p
+sudo chmod -R 777 .
+mv OK_data*/detected/* OK_data_detected/detected/
+mv OK_data*/Zaxis/* OK_data_detected/Zaxis/
+mv OK_data*/oblique1/* OK_data_detected/oblique1/
+mv OK_data*/oblique2/* OK_data_detected/oblique2/
+mv OK_data1/results.json OK_data_detected/OK_data1.json
+mv OK_data2/results.json OK_data_detected/OK_data2.json
+mv OK_data3/results.json OK_data_detected/OK_data3.json
+mv OK_data4/results.json OK_data_detected/OK_data4.json
+mv OK_data5/results.json OK_data_detected/OK_data5.json
+mv OK_data6/results.json OK_data_detected/OK_data6.json
+mv OK_data7/results.json OK_data_detected/OK_data7.json
+mv OK_data8/results.json OK_data_detected/OK_data8.json
+mv OK_data9/results.json OK_data_detected/OK_data9.json
+mv OK_data10/results.json OK_data_detected/OK_data10.json
+mv OK_data11/results.json OK_data_detected/OK_data11.json
+mv OK_data12/results.json OK_data_detected/OK_data12.json
+mv OK_data13/results.json OK_data_detected/OK_data13.json
+mv OK_data14/results.json OK_data_detected/OK_data14.json
+mv OK_data15/results.json OK_data_detected/OK_data15.json
+mv OK_data16/results.json OK_data_detected/OK_data16.json
+mv OK_data17/results.json OK_data_detected/OK_data17.json
+mv OK_data18/results.json OK_data_detected/OK_data18.json
+mv OK_data19/results.json OK_data_detected/OK_data19.json
+mv OK_data20/results.json OK_data_detected/OK_data20.json
+zip -r OK_data_detected.zip OK_data_detected
+
+cd /home/user/shinzaki/y-recovery/data/results
+mkdir NG_results/detected_Zaxis NG_results/detected_oblique2 NG_results/Zaxis NG_results/oblique1 NG_results/oblique2 NG_results/json -p
+sudo chmod -R 777 .
+mv NG_data_A*/detected/*.png NG_results/detected_Zaxis/
+mv NG_data_B*/detected/*.png NG_results/detected_Zaxis/
+mv NG_data_A*/detected_ob2/*.png NG_results/detected_oblique2/
+mv NG_data_B*/detected_ob2/*.png NG_results/detected_oblique2/
+mv NG_data_A*/Zaxis/*.png NG_results/Zaxis/
+mv NG_data_B*/Zaxis/*.png NG_results/Zaxis/
+mv NG_data_A*/oblique1/*.png NG_results/oblique1/
+mv NG_data_B*/oblique1/*.png NG_results/oblique1/
+mv NG_data_A*/oblique2/*.png NG_results/oblique2/
+mv NG_data_B*/oblique2/*.png NG_results/oblique2/
+mv NG_data_A1/results.json NG_results/NG_data_A1.json
+mv NG_data_A2/results.json NG_results/NG_data_A2.json
+mv NG_data_A3/results.json NG_results/NG_data_A3.json
+mv NG_data_A4/results.json NG_results/NG_data_A4.json
+mv NG_data_A5/results.json NG_results/NG_data_A5.json
+mv NG_data_A6/results.json NG_results/NG_data_A6.json
+mv NG_data_B1/results.json NG_results/NG_data_B1.json
+mv NG_data_B2/results.json NG_results/NG_data_B2.json
+mv NG_data_B3/results.json NG_results/NG_data_B3.json
+mv NG_data_B4/results.json NG_results/NG_data_B4.json
+mv NG_data_B5/results.json NG_results/NG_data_B5.json
+mv NG_data_B6/results.json NG_results/NG_data_B6.json
+mv NG_data_A*/*.json NG_results/
+mv NG_data_B*/*.json NG_results/
+zip -r NG_results.zip NG_results
+zip -r NG_results.zip NG_results
+
+sh inference_OK.sh
+docker exec yuasa-server python3 calc_accuray_z.py
+docker exec yuasa-server python3 calc_accuray_all.py
+docker exec yuasa-server python3 calc_accuray_OK.py
+ps aux | grep "python3 inference_main.py" | awk '{print $2}' | xargs kill -9
+cd /home/user/shinzaki/y-recovery/
+rm -r data/results/
+sh inference_NG.sh
+docker exec yuasa-server python3 calc_accuray_all.py
