@@ -1,0 +1,22 @@
+# Input and output directories
+input_dir: "/workspace/data/OK_data"
+weights_dir: "/workspace/weights/"
+output_dir: "/workspace/data/results/OK_data"
+
+# Model weights and thresholds
+weights_list:
+  Zaxis:
+    - [model_main.pth, 0.63] # model name and threshold
+    - [model_thin.pth, 0.8]
+    - [model_bead.pth, 1.0]
+  
+  oblique1:
+    - [model_main.pth, 0.8]
+  
+  oblique2:
+    - [model_main.pth, 0.1]
+    - [model_sub.pth, 0.3]
+    - [model_small.pth, 0.9]
+
+# Parallel processing settings
+max_workers: 3
