@@ -79,7 +79,7 @@ class InspectorOblique2:
                 flag2 = int(np.mean(anomaly)) - np.median(surrounding_area_averages) > min_brightness_difference
             
             # 最低輝度を上回っているかどうかを判断する
-            flag3 = int(np.max(anomaly)) > min_brightness
+            flag3 = int(np.max(anomaly)) > min_brightness and int(np.mean(anomaly)) > 40
             flag = flag1 and flag2 and flag3
             
             if flag:
